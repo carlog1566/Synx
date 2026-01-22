@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import { songAPI } from './services/api'
+import SongList from './components/SongList'
 
 function App() {
   const [songs, setSongs] = useState([])
@@ -40,13 +41,7 @@ function App() {
         <p>No songs yet. Add one!</p>
       ) : (
         <div>
-          <ul>
-            {songs.map(song => (
-              <li key={song.id}>
-                {song.title} - {song.artist} ({song.duration}s)
-              </li>
-            ))}
-          </ul>
+          <SongList songs={songs} />
         </div>
       )} 
     </div>
