@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import { songAPI } from './services/api'
 import SongList from './components/SongList'
+import AddSongForm from './components/AddSongForm'
 
 function App() {
   const [songs, setSongs] = useState([])
@@ -41,6 +42,7 @@ function App() {
         <p>No songs yet. Add one!</p>
       ) : (
         <div>
+          <AddSongForm onSongAdded={fetchSongs} />
           <SongList songs={songs} />
         </div>
       )} 
