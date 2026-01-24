@@ -19,7 +19,8 @@ export const songAPI = {
     },
 
     create: async (songData) => {
-        return await apiClient.post('/songs/', songData)
+        const headers = songData instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
+        return await apiClient.post('/songs/', songData, { headers })
     }
 }
 

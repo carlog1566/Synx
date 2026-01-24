@@ -7,45 +7,12 @@ function AddSongForm({ onSongAdded }) {
         artist: '',
         duration: '',
     })
-
+    const [audioFile, setAudioFile] = useState(null)
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-
-        if (!formData.title || !formData.artist || !formData.duration) {
-            setError('Please fill in all fields!')
-            return
-        }
-
-        if (formData.duration <= 0) {
-            setError('Duration must be 0 or greater!')
-            return
-        }
-
-        setSubmitting(true);
-        try {
-            const response = await songAPI.create(formData)
-            onSongAdded()
-            
-            setFormData({
-                title: '',
-                artist: '',
-                duration: '',
-            })
-        } catch(error) {
-            console.error('Error creating song:', error)
-            setError('Error creating song...')
-        } finally {
-            setSubmitting(false)
-            setSuccess(true)
-            setError(null)
-            setTimeout(() => setSuccess(false), 3000)
-        }
-    }
-
+    
     const handleChange = (e) => {
         const value = e.target.name === 'duration' ? parseInt(e.target.value) || '' : e.target.value
 
@@ -55,6 +22,61 @@ function AddSongForm({ onSongAdded }) {
         })
     }
 
+
+    const handleFileChange = (e) => {
+        setAudioFile(e.target.files[0])
+    }
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+
+        if (!formData.title || !formData.artist || !formData.duration) {
+            setError('Please fill in all fields!')
+            return
+        }
+
+        if (!audioFile) {
+            setError('Please select an audio file!')
+        }
+
+        if (formData.duration <= 0) {
+            setError('Duration must be 0 or greater!')
+            return
+        }
+
+        setSubmitting(true)
+        setError(null)
+
+        try {
+            const formDataToSend = new FormData()
+            formDataToSend.append('title', formData.title)
+            formDataToSend.append('artist', formData.artist)
+            formDataToSend.append('duration', formData.duration)
+            formDataToSend.append('audio_file', audioFile)
+
+            const response = await songAPI.create(formDataToSend)
+            onSongAdded()
+            
+            setFormData({
+                title: '',
+                artist: '',
+                duration: '',
+            })
+            setAudioFile(null)
+
+            setSuccess(true)
+            setTimeout(() => setSuccess(false), 3000)
+
+        } catch(error) {
+            console.error('Error creating song:', error)
+            setError('Error creating song...')
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    
     return (
         <form onSubmit={handleSubmit} className="add-song-form">
             <h2>Add New Song</h2>
@@ -82,6 +104,12 @@ function AddSongForm({ onSongAdded }) {
                 value={formData.duration}
                 onChange={handleChange}
                 placeholder="Song Duration in Seconds"
+                disabled={submitting}
+            />
+            <input
+                type="file"
+                accept="audio/*"
+                onChange={handleFileChange}
                 disabled={submitting}
             />
             <button
