@@ -17,6 +17,13 @@ function SongList({ songs }) {
                     <h3>Title: {song.title}</h3>
                     <h4>Artist: {song.artist}</h4>
                     <h5>Duration: {formatDuration(song.duration)}</h5>
+                    {song.audio_file && <h5>Audio File Uploaded</h5>}
+                    {song.audio_file && !song.analyzed && (
+                        <button onClick={() => onAnalyze(song.id)}>
+                            Analyze Chords
+                        </button>
+                    )}
+                    {song.analyzed && <h5>Chords Ready</h5>}
                 </div>
             ))}
         </div>

@@ -24,6 +24,10 @@ function App() {
     }
   }
 
+  const handleAnalyze = async (songId) => {
+    console.log('Analyzing song:', songId)
+  }
+
   if (loading) {
     return <div className="App"><h1>Loading...</h1></div>
   }
@@ -43,7 +47,7 @@ function App() {
       ) : (
         <div>
           <AddSongForm onSongAdded={fetchSongs} />
-          <SongList songs={songs} />
+          <SongList songs={songs} onAnalyze={handleAnalyze}/>
         </div>
       )} 
     </div>
