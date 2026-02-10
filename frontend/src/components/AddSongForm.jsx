@@ -5,7 +5,6 @@ function AddSongForm({ onSongAdded }) {
     const [formData, setFormData] = useState({
         title: '',
         artist: '',
-        duration: '',
     })
     const [audioFile, setAudioFile] = useState(null)
     const [submitting, setSubmitting] = useState(false)
@@ -31,7 +30,7 @@ function AddSongForm({ onSongAdded }) {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        if (!formData.title || !formData.artist || !formData.duration) {
+        if (!formData.title || !formData.artist) {
             setError('Please fill in all fields!')
             return
         }
@@ -52,7 +51,6 @@ function AddSongForm({ onSongAdded }) {
             const formDataToSend = new FormData()
             formDataToSend.append('title', formData.title)
             formDataToSend.append('artist', formData.artist)
-            formDataToSend.append('duration', formData.duration)
             formDataToSend.append('audio_file', audioFile)
 
             const response = await songAPI.create(formDataToSend)
@@ -61,7 +59,6 @@ function AddSongForm({ onSongAdded }) {
             setFormData({
                 title: '',
                 artist: '',
-                duration: '',
             })
             setAudioFile(null)
 
@@ -96,14 +93,6 @@ function AddSongForm({ onSongAdded }) {
                 value={formData.artist}
                 onChange={handleChange}
                 placeholder="Artist Name"
-                disabled={submitting}
-            />
-            <input
-                type="number"
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                placeholder="Song Duration in Seconds"
                 disabled={submitting}
             />
             <input
