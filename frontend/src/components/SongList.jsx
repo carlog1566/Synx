@@ -9,7 +9,7 @@ const formatDuration = (seconds) => {
     return `${mins}:${paddedSecs}`;
 }
 
-function SongList({ songs }) {
+function SongList({ songs, onAnalyze, analyzingId }) {
     return (
         <div className="song-list">
             {songs.map((song) => (
@@ -19,8 +19,8 @@ function SongList({ songs }) {
                     <h5>Duration: {formatDuration(song.duration)}</h5>
                     {song.audio_file && <h5>Audio File Uploaded</h5>}
                     {song.audio_file && !song.analyzed && (
-                        <button onClick={() => onAnalyze(song.id)}>
-                            Analyze Chords
+                        <button onClick={() => onAnalyze(song.id)} disabled={analyzingId === song.id}>
+                            {analyzingId === song.id ? 'Analyzing...' : 'Analyze Chords'}
                         </button>
                     )}
                     {song.analyzed && <h5>Chords Ready</h5>}

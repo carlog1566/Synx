@@ -25,7 +25,7 @@ class SongViewset(viewsets.ModelViewSet):
             chords = detector.analyze(file_path)
 
         except Exception as e:
-            return Response({'error': f'ERROR: Failed to process audio file'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'ERROR: Failed to process audio file'}, status=status.HTTP_400_BAD_REQUEST)
         
         song.chords = chords
         song.analyzed = True

@@ -21,7 +21,11 @@ export const songAPI = {
     create: async (songData) => {
         const headers = songData instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
         return await apiClient.post('/songs/', songData, { headers })
-    }
+    },
+
+    analyze: async (songId) => {
+        return await apiClient.post(`/songs/${songId}/analyze/`)
+    },
 }
 
 export default apiClient

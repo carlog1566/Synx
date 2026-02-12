@@ -8,6 +8,7 @@ function App() {
   const [songs, setSongs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [analyzingId, setAnalyzingId] = useState(null)
 
   useEffect(() => {
     fetchSongs()
@@ -26,6 +27,19 @@ function App() {
 
   const handleAnalyze = async (songId) => {
     console.log('Analyzing song:', songId)
+    setAnalyzingId(songId)
+
+    try {
+      const response = await songAPI.analyze(songId)
+      const updatedSong = response.data
+      setSongs(songs.map(song =>
+        song.id === songId ? updatedSong : song
+      ))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setAnalyzingId(null)
+    }
   }
 
   if (loading) {
@@ -47,7 +61,7 @@ function App() {
       ) : (
         <div>
           <AddSongForm onSongAdded={fetchSongs} />
-          <SongList songs={songs} onAnalyze={handleAnalyze}/>
+          <SongList songs={songs} onAnalyze={handleAnalyze} analyzingId={analyzingId}/>
         </div>
       )} 
     </div>
