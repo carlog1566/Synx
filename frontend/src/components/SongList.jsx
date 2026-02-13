@@ -1,4 +1,5 @@
 import React from "react";
+import ChordDisplay from './ChordDisplay';
 
 const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -23,7 +24,7 @@ function SongList({ songs, onAnalyze, analyzingId }) {
                             {analyzingId === song.id ? 'Analyzing...' : 'Analyze Chords'}
                         </button>
                     )}
-                    {song.analyzed && <h5>Chords Ready</h5>}
+                    {song.chords && <ChordDisplay chords={song.chords} />}
                 </div>
             ))}
         </div>

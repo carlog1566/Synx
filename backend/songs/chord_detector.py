@@ -39,7 +39,7 @@ class ChordDetector:
             if chord is None:
                 continue
 
-            results.append([{'time': time, 'chord': chord}])
+            results.append({'time': time, 'chord': chord})
 
         return results
     
