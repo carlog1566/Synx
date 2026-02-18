@@ -10,7 +10,7 @@ class ChordDetector:
     NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 
-    def analyze(self, audio_file_path, step=2.0):
+    def analyze(self, audio_file_path, step=1.0):
         """
         This method is the main method used to analyze chords within audio/songs
         

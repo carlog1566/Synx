@@ -37,6 +37,7 @@ function AddSongForm({ onSongAdded }) {
 
         if (!audioFile) {
             setError('Please select an audio file!')
+            return
         }
 
         if (formData.duration <= 0) {
@@ -54,7 +55,7 @@ function AddSongForm({ onSongAdded }) {
             formDataToSend.append('audio_file', audioFile)
 
             const response = await songAPI.create(formDataToSend)
-            onSongAdded()
+            onSongAdded(response.data)
             
             setFormData({
                 title: '',

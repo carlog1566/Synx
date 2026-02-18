@@ -19,11 +19,18 @@ function SongList({ songs, onAnalyze, analyzingId }) {
                     <h4>Artist: {song.artist}</h4>
                     <h5>Duration: {formatDuration(song.duration)}</h5>
                     {song.audio_file && <h5>Audio File Uploaded</h5>}
-                    {song.audio_file && !song.analyzed && (
+                    {analyzingId === song.id && (<h5>Analyzing...</h5>)}
+                    {song.analysis_failed && (
+                        <button onClick={() => onAnalyze(song.id)} disabled={analyzingId === song.id}>
+                            {analyzingId === song.id ? 'Analyzing...' : 'Song Analysis Failed - Retry'}
+                        </button>
+                    )}
+                    {song.audio_file && !song.analyzed && !song.analysis_failed && analyzingId !== song.id && (
                         <button onClick={() => onAnalyze(song.id)} disabled={analyzingId === song.id}>
                             {analyzingId === song.id ? 'Analyzing...' : 'Analyze Chords'}
                         </button>
                     )}
+                    {song.analyzed && (<h5>Analyzed!</h5>)}
                     {song.chords && <ChordDisplay chords={song.chords} />}
                 </div>
             ))}

@@ -29,16 +29,31 @@ function App() {
     console.log('Analyzing song:', songId)
     setAnalyzingId(songId)
 
+    setSongs(prevSongs => prevSongs.map(song => 
+      song.id === songId ? {...song, analysis_failed: false} : song
+    ))
+
     try {
       const response = await songAPI.analyze(songId)
       const updatedSong = response.data
-      setSongs(songs.map(song =>
+      setSongs(prevSongs => prevSongs.map(song =>
         song.id === songId ? updatedSong : song
       ))
     } catch (err) {
       setError(err.message)
+      setSongs(prevSongs => prevSongs.map(song =>
+        song.id === songId ? {...song, analysis_failed: true} : song
+      ))
     } finally {
       setAnalyzingId(null)
+    }
+  }
+
+  const handleSongAdded = async (newSong) => {
+    setSongs(prevSongs => [newSong, ...prevSongs])
+
+    if (newSong.audio_file) {
+      handleAnalyze(newSong.id)
     }
   }
 
@@ -56,11 +71,11 @@ function App() {
   return (
     <div className="App">
       <h1>Synx</h1>
+      <AddSongForm onSongAdded={handleSongAdded} />
       {songs.length === 0 ? (
         <p>No songs yet. Add one!</p>
       ) : (
         <div>
-          <AddSongForm onSongAdded={fetchSongs} />
           <SongList songs={songs} onAnalyze={handleAnalyze} analyzingId={analyzingId}/>
         </div>
       )} 
