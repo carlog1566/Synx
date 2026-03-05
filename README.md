@@ -39,7 +39,7 @@ python manage.py runserver
 ```
 **Frontend**
 ```
-bashcd frontend
+cd frontend
 npm install
 npm run dev
 ```
