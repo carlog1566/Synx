@@ -15,7 +15,8 @@
 ## Tech Stack
 **Frontend**:
 
-React + Vite
+React + Vite + TailwindCSS
+
 Axios for API calls
 
 **Backend**:
