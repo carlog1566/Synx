@@ -31,7 +31,7 @@ Librosa for audio processing
 **Backend**
 ```
 cd backend
-python -m venv venv
+python -m env env
 source env/bin/activate  # Windows: env\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
