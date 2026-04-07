@@ -44,27 +44,6 @@ class ChordDetector:
         return results
     
     
-    def _get_dominant_chord(self, chroma):
-        """
-        This method is used to obtain themost dominant chord based on the chroma (frequency representation)
-
-        Parameters
-        ----------
-        chroma : np.ndarray
-            The chroma features of an audio; the entire spectrum of an audio signal divided into 12 bins
-
-        Returns
-        -------
-        str
-            The note with the most prominent energy/frequency, based on self.NOTES
-        """
-
-        avg_chroma = np.mean(chroma, axis=1)
-        max_index = np.argmax(avg_chroma)
-
-        return self.NOTES[max_index]
-    
-    
     def _get_chord_at_time(self, y, sr, time, step):
         """
         This method extracts the most dominant chord from an audio segment at a specific time
@@ -99,6 +78,43 @@ class ChordDetector:
 
         return chord
     
+
+    def _get_dominant_chord(self, chroma):
+        """
+        This method is used to obtain themost dominant chord based on the chroma (frequency representation)
+
+        Parameters
+        ----------
+        chroma : np.ndarray
+            The chroma features of an audio; the entire spectrum of an audio signal divided into 12 bins
+
+        Returns
+        -------
+        str
+            The note with the most prominent energy/frequency, based on self.NOTES
+        """
+
+        avg_chroma = np.mean(chroma, axis=1)
+        max_index = np.argmax(avg_chroma)
+
+        return self.NOTES[max_index]
+    
+
+    def _detect_chord_quality(self, chroma):
+        avg_chroma = np.mean(chroma, axis=1)
+        root_idx = np.argmax(avg_chroma)
+
+        major_third_idx = (root_idx + 4) % 12
+        minor_third_idx = (root_idx + 3) % 12
+
+        major_strength = avg_chroma[major_third_idx]
+        minor_strength = avg_chroma[minor_third_idx]
+
+        if minor_strength > major_strength * 1.2:
+            return 'm'
+        else:
+            return ''
+
 
     def visualize_chroma(self, audio_file_path):
         """
