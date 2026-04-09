@@ -10,7 +10,7 @@ class ChordDetector:
     NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 
-    def analyze(self, audio_file_path, step=1.0):
+    def analyze(self, audio_file_path, step=1.0, verbose=False):
         """
         This method is the main method used to analyze chords within audio/songs
         
@@ -20,6 +20,8 @@ class ChordDetector:
             The designated file path for the desired audio file to be analyzed
         step : float, optional
             The time interval in seconds between consecutive chord analysis frames (default is 2.0)
+        verbose : bool, optional
+            Used to print debugging information during analysis
 
         Returns
         -------
@@ -31,13 +33,24 @@ class ChordDetector:
         duration = librosa.get_duration(y=y, sr=sr)
         times = np.arange(0, duration, step)
 
+        if verbose:
+            print(f'Loaded: {audio_file_path}')
+            print(f'Duration: {duration:.2f}s')
+            print(f'Sample rate: {sr}Hz')
+            print(f'Analyzing with {step}s intervals...')
+
         results = []
 
         for time in times:
             chord = self._get_chord_at_time(y, sr, time, step)
             
             if chord is None:
+                if verbose:
+                    print(f'{time:.2f}s: Skipped - Too quite/short')
                 continue
+            
+            if verbose:
+                print(f'{time:.2f}s: {chord}')
 
             results.append({'time': time, 'chord': chord})
 
@@ -74,6 +87,10 @@ class ChordDetector:
         
         chroma = librosa.feature.chroma_cqt(y=segment, sr=sr)
         avg_chroma = np.mean(chroma, axis=1)
+
+        max_chroma_value = np.max(avg_chroma)
+        if max_chroma_value < 0.1:
+            return None
         
         chord = self._get_dominant_chord(avg_chroma)
         quality = self._detect_chord_quality(avg_chroma)
