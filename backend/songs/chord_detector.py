@@ -46,7 +46,7 @@ class ChordDetector:
             
             if chord is None:
                 if verbose:
-                    print(f'{time:.2f}s: Skipped - Too quite/short')
+                    print(f'{time:.2f}s: Skipped - Too quiet/short')
                 continue
             
             if verbose:
@@ -113,6 +113,7 @@ class ChordDetector:
         str
             The note with the most prominent energy/frequency, based on self.NOTES
         """
+        
         max_index = np.argmax(avg_chroma)
 
         return self.NOTES[max_index]
@@ -134,6 +135,7 @@ class ChordDetector:
         str
             'm' or '' depending on if the chord is a minor or major
         """
+
         root_idx = np.argmax(avg_chroma)
 
         major_third_idx = (root_idx + 4) % 12
