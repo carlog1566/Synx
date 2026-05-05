@@ -25,7 +25,7 @@ const HomePage = () => {
                 
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <Link to="/song" className="bg-gradient-to-r from-primary to-third text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                        <Link to="/songs" className="bg-gradient-to-r from-primary to-third text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-300">
                             Get Started - It's Free! →
                         </Link>
                         
