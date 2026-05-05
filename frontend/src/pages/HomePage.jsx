@@ -60,7 +60,7 @@ const HomePage = () => {
 
                         {/* Feature 2 */}
                         <div className="text-center">
-                            <div className="bg-gradient-to-br from-pink-100 to-blue-100 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <div className="bg-gradient-to-br from-purple-100 to-pink-100 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
                                 <span className="text-4xl">🤖</span>
                             </div>
                             <h3 className="text-xl font-bold mb-3 text-gray-800">2. AI Chord Detection</h3>
@@ -71,7 +71,7 @@ const HomePage = () => {
 
                         {/* Feature 3 */}
                         <div className="text-center">
-                            <div className="bg-gradient-to-br from-blue-100 to-purple-100 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <div className="bg-gradient-to-br from-purple-100 to-pink-100 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
                                 <span className="text-4xl">🎵</span>
                             </div>
                             <h3 className="text-xl font-bold mb-3 text-gray-800">3. Interactive Tabs</h3>
