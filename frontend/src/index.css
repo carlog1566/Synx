@@ -6,6 +6,10 @@
   --color-third: #A98AD1;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
