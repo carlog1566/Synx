@@ -7,7 +7,9 @@ const Navbar = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl pb-1 font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Synx
+                <Link to="/">
+                  Synx
+                </Link>
               </h1>
               <p className="text-gray-600 mt-1">Your AI-powered music companion</p>
             </div>
