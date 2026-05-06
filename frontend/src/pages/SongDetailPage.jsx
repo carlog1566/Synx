@@ -1,5 +1,5 @@
 import { songAPI } from "../services/api";
-import { Link, useParams, useNavigate } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { useState, useEffect } from 'react';
 import SongDetailNav from "../components/SongDetailNav";
 import Error from "../components/Error";
