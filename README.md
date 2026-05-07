@@ -57,8 +57,8 @@ npm run dev
 * [x] Audio file upload
 * [x] Chord detection
 * [x] Auto-analysis on upload
-* [ ] Tab generation (in progress)
-* [ ] Interactive tab player (planned)
+* [x] Tab generation
+* [ ] Interactive tab player (in progress)
 * [ ] User authentication (planned)
 * [ ] Song recommendations (planned)
 * [ ] Computer Vision Tracking?
