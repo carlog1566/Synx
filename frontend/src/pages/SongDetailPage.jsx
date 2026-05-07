@@ -136,7 +136,7 @@ const SongDetailPage = () => {
                                 <select
                                     value={selectedInstrument}
                                     onChange={(e) => setSelectedInstrument(e.target.value)}
-                                    className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-600 focus:outline-none"
+                                    className="px-4 py-2 border-2 border-gray-300 rounded-lg transition-all duration-300 focus:border-purple-600 focus:outline-none"
                                 >
                                     <option value="guitar">Guitar</option>
                                 </select>
@@ -146,9 +146,11 @@ const SongDetailPage = () => {
                 )}
 
                 {/* Tabs Display */}
-                <div className="bg-white rounded-2xl shadow-lg p-8">
-                    <TabDisplay tabs={song.tabs} instrument={selectedInstrument} />
-                </div>
+                {song.analyzed && (
+                    <div className="bg-white rounded-2xl shadow-lg p-8">
+                        <TabDisplay tabs={song.tabs} instrument={selectedInstrument} />
+                    </div>
+                )}
             </div>
         </div>
     )
