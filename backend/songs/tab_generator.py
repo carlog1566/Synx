@@ -62,15 +62,11 @@ class TabGenerator:
         tabs.append('=' * 50)
         tabs.append('')
 
-        tabs.append('Chord Progression:')
-        timeline = self._format_progression_timeline(chords)
-        tabs.append(timeline)
-        tabs.append('')
-        tabs.append('=' * 50)
-        tabs.append('')
-
         unique_chords = []
         seen = set()
+
+        tabs.append('Chords:')
+        tabs.append('')
         for chord in chords:
             if chord['chord'] not in seen:
                 unique_chords.append(chord['chord'])
@@ -81,6 +77,16 @@ class TabGenerator:
             diagram = self._format_chord_diagram(chord, position)
             tabs.append(diagram)
             tabs.append('')
+        
+        tabs.append('=' * 50)
+        tabs.append('')
+        tabs.append('Chord Progression:')
+        tabs.append('')
+        timeline = self._format_progression_timeline(chords)
+        tabs.append(timeline)
+        tabs.append('')
+        tabs.append('=' * 50)
+        tabs.append('')
 
         return '\n'.join(tabs)
 
@@ -180,5 +186,5 @@ class TabGenerator:
             part = f'{chord_name} - {time}'
             timeline.append(part)
 
-        return '    '.join(timeline)
+        return '\n'.join(timeline)
 

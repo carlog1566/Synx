@@ -14,7 +14,7 @@ const HomePage = () => {
                     </h1>
                     
                     <p className="text-2xl md:text-3xl text-gray-700 mb-4 font-light">
-                        Turn any song into interactive guitar tabs
+                        Turn any song into interactive tabs
                     </p>
                     
                     <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
@@ -76,7 +76,7 @@ const HomePage = () => {
                             </div>
                             <h3 className="text-xl font-bold mb-3 text-gray-800">3. Interactive Tabs</h3>
                             <p className="text-gray-600">
-                                Get professional guitar tabs with chord diagrams, ready to play along.
+                                Get professional tabs with chord diagrams, ready to play along.
                             </p>
                         </div>
                     </div>
@@ -94,7 +94,7 @@ const HomePage = () => {
                         <HomeCard 
                         icon="🎸"
                         title="Multiple Instruments"
-                        description="Guitar and ukulele tabs supported, with more coming soon"
+                        description="Guitar tabs supported, with more coming soon"
                         />
                         <HomeCard 
                         icon="⚡"
@@ -139,19 +139,6 @@ const HomePage = () => {
                     </Link>
                 </div>
             </div>
-
-            {/* Footer */}
-            <footer className="text-white pt-16">
-                <div className="container mx-auto px-4 text-center">
-                    <h3 className="text-2xl font-bold mb-2 text-gray-400">Synx</h3>
-                    <p className="text-gray-400 mb-6">
-                        AI-powered chord detection and tab generation
-                    </p>
-                    <div className="text-gray-500 text-sm">
-                        © 2026 Synx
-                    </div>
-                </div>
-            </footer>
         </div>
   )
 }
