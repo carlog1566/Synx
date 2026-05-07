@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import SongDetailNav from "../components/SongDetailNav";
 import Error from "../components/Error";
 import Loading from "../components/Loading";
+import TabDisplay from "../components/TabDisplay";
 
 
 const formatDuration = (seconds) => {
@@ -123,6 +124,31 @@ const SongDetailPage = () => {
                         </Link>
                     </div>
                 )}
+
+                {/* Controls Section */}
+                {song.analyzed && (
+                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <label className="text-gray-700 font-medium">
+                                    Instrument:
+                                </label>
+                                <select
+                                    value={selectedInstrument}
+                                    onChange={(e) => setSelectedInstrument(e.target.value)}
+                                    className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-600 focus:outline-none"
+                                >
+                                    <option value="guitar">Guitar</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tabs Display */}
+                <div className="bg-white rounded-2xl shadow-lg p-8">
+                    <TabDisplay tabs={song.tabs} instrument={selectedInstrument} />
+                </div>
             </div>
         </div>
     )

@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from .models import Song
 from .serializers import SongSerializer
 from songs.chord_detector import ChordDetector
+from songs.tab_generator import TabGenerator
 
 # Create your views here.
 
@@ -24,10 +25,16 @@ class SongViewset(viewsets.ModelViewSet):
             file_path = song.audio_file.path
             chords = detector.analyze(file_path)
 
+            tab_gen = TabGenerator()
+            tabs = {
+                'guitar': tab_gen.generate(chords, 'guitar')
+            }
+
         except Exception as e:
             return Response({'error': 'ERROR: Failed to process audio file'}, status=status.HTTP_400_BAD_REQUEST)
         
         song.chords = chords
+        song.tabs = tabs
         song.analyzed = True
         song.save()
 

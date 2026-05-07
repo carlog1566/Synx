@@ -5,8 +5,8 @@ from .models import Song
 class SongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
-        fields = ['id', 'title', 'artist', 'duration', 'audio_file', 'chords', 'analyzed', 'created_at']
-        read_only_fields = ['id', 'duration', 'chords', 'analyzed', 'created_at']
+        fields = ['id', 'title', 'artist', 'duration', 'audio_file', 'chords', 'tabs', 'analyzed', 'created_at']
+        read_only_fields = ['id', 'duration', 'chords', 'tabs', 'analyzed', 'created_at']
 
     def create(self, validated_data):
         song = Song.objects.create(**validated_data)
