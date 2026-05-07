@@ -139,19 +139,6 @@ const HomePage = () => {
                     </Link>
                 </div>
             </div>
-
-            {/* Footer */}
-            <footer className="text-white pt-16">
-                <div className="container mx-auto px-4 text-center">
-                    <h3 className="text-2xl font-bold mb-2 text-gray-400">Synx</h3>
-                    <p className="text-gray-400 mb-6">
-                        AI-powered chord detection and tab generation
-                    </p>
-                    <div className="text-gray-500 text-sm">
-                        © 2026 Synx
-                    </div>
-                </div>
-            </footer>
         </div>
   )
 }

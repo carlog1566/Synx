@@ -1,13 +1,21 @@
+import { Link } from "react-router"
 import ChordDisplay from "./ChordDisplay"
+import SongListPage from "../pages/SongListPage"
 
 const Song = ({ song, analyzingId, handleAnalyze, formatDuration }) => {
     return (
         <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-200">
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-primary to-secondary p-6 text-white">
-                <h3 className="text-xl font-bold mb-1 truncate">{song.title}</h3>
-                <p className="text-white/80 text-sm">{song.artist}</p>
-            </div>
+            <Link to={`${song.id}`}>
+                <div className="bg-gradient-to-r from-primary to-secondary p-6 text-white">
+                    <h3 className="text-xl font-bold mb-1 truncate">
+                        {song.title}
+                    </h3>
+                    <p className="text-white/80 text-sm">
+                        {song.artist}
+                    </p>
+                </div>
+            </Link>
 
             {/* Card Body */}
             <div className="p-6 space-y-4">
@@ -72,7 +80,7 @@ const Song = ({ song, analyzingId, handleAnalyze, formatDuration }) => {
                     {song.audio_file && !song.analyzed && !song.analysis_failed && analyzingId !== song.id && (
                         <button 
                             onClick={() => handleAnalyze(song.id)}
-                            className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
+                            className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
                         >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />

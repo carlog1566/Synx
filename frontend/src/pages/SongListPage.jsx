@@ -91,14 +91,16 @@ const SongListPage = () => {
                 {songs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center col-span-full text-center py-16">
                         <div className="text-6xl mb-4">🎵</div>
-                        <h2 className="text-2xl font-semibold text-gray-700 mb-2">No songs yet!</h2>
-                        <p className="text-gray-500">Upload your first song to get started.</p>
+                        <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+                            No songs yet!
+                        </h2>
+                        <p className="text-gray-500">
+                            Upload your first song to get started.
+                        </p>
                     </div>
                 ) : (      
                     songs.map((song) => (
-                        <Link key={song.id} to={`${song.id}`}>
-                            <Song song={song} analyzingId={analyzingId} handleAnalyze={handleAnalyze} formatDuration={formatDuration} />
-                        </Link>
+                        <Song key={song.id} song={song} analyzingId={analyzingId} handleAnalyze={handleAnalyze} formatDuration={formatDuration} />
                     )
                 ))}
             </div>

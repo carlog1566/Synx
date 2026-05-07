@@ -11,19 +11,32 @@ const Navbar = () => {
                   Synx
                 </Link>
               </h1>
-              <p className="text-gray-600 mt-1">Your AI-powered music companion</p>
+              <p className="text-gray-600 mt-1">
+                Your AI-powered music companion
+              </p>
             </div>
-            <div className="mr-40">
-              <Link to="/" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold text-primary transition-all duration-500 ease-in-out hover:bg-third hover:text-gray-100">
-                <span className="text-lg">Home</span>
+            <div className="mr-10">
+              <Link to="/" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
+                <span className="text-lg">
+                  Home
+                </span>
               </Link>
-              <Link to="/songs" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold text-primary transition-all duration-500 ease-in-out hover:bg-third hover:text-gray-100">
-                <span className="text-lg">Songs</span>
+              <Link to="/songs" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
+                <span className="text-lg">
+                  Songs
+                </span>
               </Link>
             </div>
             <div>
-              <Link to="/" className="group inline-block px-4 py-2 rounded-full text-sm font-bold text-primary transition-all duration-500 ease-in-out hover:bg-third hover:text-gray-100">
-                <span className="text-lg">Sign Up</span>
+              <Link to="/" className="group inline-block px-4 py-2 mx-1 border border-third rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
+                <span className="text-lg">
+                  Sign In
+                </span>
+              </Link>
+              <Link to="/" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold bg-third text-white transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105">
+                <span className="text-lg">
+                  Sign Up
+                </span>
               </Link>
             </div>
           </div>
