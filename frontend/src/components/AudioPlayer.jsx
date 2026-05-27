@@ -26,7 +26,7 @@ const AudioPlayer = ({ audioUrl }) => {
             container: waveformRef.current,
             waveColor: '#e5e7eb',
             progressColor: '#9333ea',
-            cursorColor: '#ec4899',
+            cursorColor: '#ec4848',
             height: 80,
             barWidth: 2,
             barGap: 1,
@@ -64,22 +64,21 @@ const AudioPlayer = ({ audioUrl }) => {
             
             {/* Controls */}
             <div className="flex items-center justify-between">
+
                 {/* Play/Pause Button */}
-                <button
-                onClick={handlePlayPause}
-                className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 transition-colors"
-                >
-                {isPlaying ? (
-                    // Pause Icon
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                ) : (
-                    // Play Icon
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                    </svg>
-                )}
+                <button onClick={handlePlayPause} className="bg-fourth hover:bg-primary text-white rounded-full p-4 transition-colors duration-300 cursor-pointer">
+
+                    {isPlaying ? (
+                        // Pause Icon
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                    ) : (
+                        // Play Icon
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                        </svg>
+                    )}
                 </button>
                 
                 {/* Time Display */}
