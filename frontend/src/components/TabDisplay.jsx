@@ -9,7 +9,9 @@ const TabDisplay = ({ tabs, instrument }) => {
         )
     }
 
-    if (!tabs[instrument]) {
+    const tabData = tabs[instrument];
+
+    if (tabData.length <= 0) {
         return (
             <div className="text-center py-12 text-gray-500">
                 <div className="text-6xl mb-4">
@@ -33,9 +35,22 @@ const TabDisplay = ({ tabs, instrument }) => {
 
             {/* Tabs Content */}
             <div className="bg-gray-50 rounded-lg p-6 overflow-x-auto">
-                <pre className="font-mono text-sm leading-relaxed whitespace-pre">
-                    {tabs[instrument]}
-                </pre>
+                <div className="font-mono text-sm leading-relaxed whitespace-pre">
+                    {tabData.map((item, index) => (
+                        <div key={index}>
+                            <p>
+                                Time: {item['time']}
+                            </p>
+                            <p>
+                                Chord: {item['chord']}
+                            </p>
+                            <p>
+                                Positions: <br></br>{item['positions']['E']}<br></br>{item['positions']['A']}<br></br>{item['positions']['D']}<br></br>{item['positions']['G']}<br></br>{item['positions']['B']}<br></br>{item['positions']['e']}
+                            </p>
+                            <br></br>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     )

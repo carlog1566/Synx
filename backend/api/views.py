@@ -27,7 +27,8 @@ class SongViewset(viewsets.ModelViewSet):
 
             tab_gen = TabGenerator()
             tabs = {
-                'guitar': tab_gen.generate(chords, 'guitar')
+                'guitar': tab_gen.generate(chords, 'guitar'),
+                # 'guitar_ascii': tab_gen.generate_ascii(chords,'guitar'),
             }
 
         except Exception as e:
