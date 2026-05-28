@@ -5,6 +5,7 @@ import SongDetailNav from "../components/SongDetailNav";
 import Error from "../components/Error";
 import Loading from "../components/Loading";
 import TabDisplay from "../components/TabDisplay";
+import AudioPlayer from "../components/AudioPlayer";
 
 
 const formatDuration = (seconds) => {
@@ -123,6 +124,11 @@ const SongDetailPage = () => {
                             </button>
                         </Link>
                     </div>
+                )}
+
+                {/* Audio Player */}
+                {song.audio_file && (
+                    <AudioPlayer audioUrl={song.audio_file} />
                 )}
 
                 {/* Controls Section */}

@@ -31,7 +31,7 @@ Librosa for audio processing
 **Backend**
 ```
 cd backend
-python -m env env
+python -m venv env
 source env/bin/activate  # Windows: env\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
@@ -57,8 +57,8 @@ npm run dev
 * [x] Audio file upload
 * [x] Chord detection
 * [x] Auto-analysis on upload
-* [ ] Tab generation (in progress)
-* [ ] Interactive tab player (planned)
+* [x] Tab generation
+* [ ] Interactive tab player (in progress)
 * [ ] User authentication (planned)
 * [ ] Song recommendations (planned)
 * [ ] Computer Vision Tracking?

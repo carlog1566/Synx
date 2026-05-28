@@ -87,39 +87,39 @@ const HomePage = () => {
             <div className="bg-white py-20 my-10 rounded-3xl">
                 <div className="container mx-auto px-4">
                     <h2 className="text-4xl font-bold text-center mb-16 text-gray-800">
-                        Powerful Features
+                        Features
                     </h2>
                     
                     <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                         <HomeCard 
-                        icon="🎸"
-                        title="Multiple Instruments"
-                        description="Guitar tabs supported, with more coming soon"
+                            icon="🎸"
+                            title="Multiple Instruments"
+                            description="Guitar tabs supported, with more coming soon"
                         />
                         <HomeCard 
-                        icon="⚡"
-                        title="Instant Analysis"
-                        description="Chord detection completes in seconds, not minutes"
+                            icon="⚡"
+                            title="Instant Analysis"
+                            description="Chord detection completes in seconds, not minutes"
                         />
                         <HomeCard 
-                        icon="📊"
-                        title="Chord Progression"
-                        description="See the full chord timeline for any song"
+                            icon="📊"
+                            title="Chord Progression"
+                            description="See the full chord timeline for any song"
                         />
                         <HomeCard 
-                        icon="💾"
-                        title="Save Your Library"
-                        description="Keep all your analyzed songs in one place"
+                            icon="💾"
+                            title="Save Your Library"
+                            description="Keep all your analyzed songs in one place"
                         />
                         <HomeCard 
-                        icon="🎯"
-                        title="Beginner Friendly"
-                        description="Simple chord diagrams perfect for learning"
+                            icon="🎯"
+                            title="Beginner Friendly"
+                            description="Simple chord diagrams perfect for learning"
                         />
                         <HomeCard 
-                        icon="🚀"
-                        title="Always Improving"
-                        description="Regular updates with new features and better accuracy"
+                            icon="🚀"
+                            title="Always Improving"
+                            description="Regular updates with new features and better accuracy"
                         />
                     </div>
                 </div>
