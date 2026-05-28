@@ -89,8 +89,8 @@ function AddSongForm({ onSongAdded }) {
             {/* Alert Messages */}
             {error && (
                 <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start">
-                    <span className="text-xl mr-2">⚠️</span>
-                    <span>{error}</span>
+                    <span className="text-lg mr-2">⚠️</span>
+                    <span className="mt-1">{error}</span>
                 </div>
             )}
 

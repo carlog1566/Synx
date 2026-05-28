@@ -25,13 +25,16 @@ function ChordDisplay({ chords }) {
             </h4>
             <div className="flex flex-wrap gap-2">
                 {chords.map((chord, index) => (
-                    <div 
-                        key={index}
-                        className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg px-3 py-2 text-sm"
-                    >
-                        <span className="text-gray-500 text-xs">{formatTime(chord.time)}</span>
-                        <span className="mx-2 text-gray-400">•</span>
-                        <span className="font-bold text-primary">{chord.chord}</span>
+                    <div key={index} className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg px-3 py-2 text-sm">
+                        <span className="text-gray-500 text-xs">
+                            {formatTime(chord.time)}
+                        </span>
+                        <span className="mx-2 text-gray-400">
+                            •
+                        </span>
+                        <span className="font-bold text-primary">
+                            {chord.chord}
+                        </span>
                     </div>
                 ))}
             </div>
