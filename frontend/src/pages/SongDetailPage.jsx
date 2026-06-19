@@ -5,6 +5,7 @@ import SongDetailNav from "../components/SongDetailNav";
 import Error from "../components/Error";
 import Loading from "../components/Loading";
 import TabDisplay from "../components/TabDisplay";
+import FretboardDisplay from "../components/FretboardDisplay";
 import AudioPlayer from "../components/AudioPlayer";
 
 
@@ -154,7 +155,8 @@ const SongDetailPage = () => {
                 {/* Tabs Display */}
                 {song.analyzed && (
                     <div className="bg-white rounded-2xl shadow-lg p-8">
-                        <TabDisplay tabs={song.tabs} instrument={selectedInstrument} />
+                        {/* <TabDisplay tabs={song.tabs} instrument={selectedInstrument} /> */}
+                        <FretboardDisplay tabData={song.tabs.guitar} currentTime={6} />
                     </div>
                 )}
             </div>
