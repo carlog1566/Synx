@@ -39,7 +39,7 @@ class TabGenerator:
             chord_dict = self.GUITAR_CHORDS
 
         tabs = []
-        strings = ['E', 'A', 'D', 'G', 'B', 'e']
+        strings = ['E', 'A', 'D', 'G', 'B', 'E']
 
         for chord in chords:
             time = chord['time']
@@ -164,7 +164,7 @@ class TabGenerator:
         tab = [chord]
 
         if instrument == 'guitar':
-            string_names = ['E', 'A', 'D', 'G', 'B', 'e']
+            string_names = ['E', 'A', 'D', 'G', 'B', 'E']
 
         for i, string_name in enumerate(string_names):
             pos = positions[i]

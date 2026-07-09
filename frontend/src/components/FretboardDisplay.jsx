@@ -1,7 +1,7 @@
 import ChordColumn from './ChordColumn'
 
 const FretboardDisplay = ({ tabData, currentTime }) => {
-    const STRINGS = ['E', 'A', 'D', 'G', 'B', 'e'];
+    const STRINGS = ['E', 'A', 'D', 'G', 'B', 'E'];
     const CHORD_WIDTH = 80;
     const STRING_SPACING = 30;
     const PADDING_LEFT = 40;
@@ -21,6 +21,23 @@ const FretboardDisplay = ({ tabData, currentTime }) => {
                         <text key={stringName} x={PADDING_LEFT - 10} y={y} textAnchor="end" dominantBaseline="middle">
                             {stringName}
                         </text>
+                    )
+                })}
+                {tabData.map((chord, index) => {
+                    const isActive = (chord['time'] <= currentTime && (!tabData[index + 1] || tabData[index + 1]['time'] > currentTime))
+                    const xPosition = PADDING_LEFT + (CHORD_WIDTH * index) + (CHORD_WIDTH / 2)
+                    
+                    return (
+                        <ChordColumn 
+                            key={chord['time']} 
+                            chordData={chord} 
+                            xPosition={xPosition} 
+                            isActive={isActive}
+                            strings={STRINGS}
+                            stringSpacing={STRING_SPACING}
+                            paddingTop={PADDING_TOP}
+                            dotRadius={DOT_RADIUS}
+                        />
                     )
                 })}
             </svg>
