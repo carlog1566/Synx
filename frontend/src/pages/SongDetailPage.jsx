@@ -156,7 +156,7 @@ const SongDetailPage = () => {
                 {song.analyzed && (
                     <div className="bg-white rounded-2xl shadow-lg p-8">
                         {/* <TabDisplay tabs={song.tabs} instrument={selectedInstrument} /> */}
-                        <FretboardDisplay tabData={song.tabs.guitar} currentTime={6} />
+                        <FretboardDisplay tabData={song.tabs.guitar} currentTime={6} formatDuration={formatDuration}/>
                     </div>
                 )}
             </div>
