@@ -144,7 +144,7 @@ python3 -c "from django.core.management.utils import get_random_secret_key; prin
 
 ## 4. PostgreSQL Setup
 
-Open PostgreSQL.
+Open a new terminal and open PostgreSQL.
 
 Windows
 
@@ -161,10 +161,14 @@ psql postgres
 Then run:
 
 ```sql
-CREATE DATABASE synx_db;
-CREATE USER synx_user WITH PASSWORD 'your-db-password-here';
-GRANT ALL PRIVILEGES ON DATABASE synx_db TO synx_user;
-\q
+CREATE ROLE synx_user WITH LOGIN PASSWORD 'your-password-here';
+CREATE DATABASE synx_db OWNER synx_user;
+
+\c synx_db
+
+ALTER SCHEMA public OWNER TO synx_user;
+GRANT ALL ON SCHEMA public TO synx_user;
+GRANT CREATE ON SCHEMA public TO synx_user;
 ```
 
 ## 5. Run Migrations
