@@ -2,16 +2,16 @@ const ChordColumn = ({ chordData, xPosition, isActive, strings, stringSpacing, p
 
     return (
         <g>
-            <text x={xPosition} y={paddingTop - 15} textAnchor="middle">{chordData['chord']}</text>
+            <text x={xPosition} y={paddingTop - 30} textAnchor="middle">{chordData['chord']}</text>
             {isActive && (
                 <rect
                     x={xPosition - 40}
-                    y={paddingTop - 30}
+                    y={paddingTop - 53}
                     width={80}
-                    height={50 + (strings.length * stringSpacing)}
+                    height={40 + (strings.length * stringSpacing)}
                     fill="#9333ea"
                     opacity={0.1}
-                    rx={4}
+                    rx={10}
                 />
             )}
             {strings.map((stringName, stringIndex) => {
@@ -42,14 +42,6 @@ const ChordColumn = ({ chordData, xPosition, isActive, strings, stringSpacing, p
                     </g>
                 )
             })}
-            <text
-                x={xPosition}
-                y={paddingTop + (strings.length * stringSpacing) + 10}
-                textAnchor="middle"
-            >
-                {formatDuration(chordData['time'])}
-            </text>
-            
         </g>
     )
 }
