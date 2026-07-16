@@ -10,7 +10,7 @@ const formatDuration = (seconds) => {
     return `${mins}:${paddedSecs}`;
 }
 
-const AudioPlayer = ({ audioUrl }) => {
+const AudioPlayer = ({ audioUrl, onTimeUpdate }) => {
     const waveformRef = useRef(null);
     const wavesurfer = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -41,7 +41,11 @@ const AudioPlayer = ({ audioUrl }) => {
             setDuration(wavesurfer.current.getDuration())
             setLoading(false)   
         })
-        wavesurfer.current.on('audioprocess', () => {setCurrentTime(wavesurfer.current.getCurrentTime())})
+        wavesurfer.current.on('audioprocess', () => {
+            const time = wavesurfer.current.getCurrentTime()
+            onTimeUpdate(time)
+            setCurrentTime(time)
+        })
 
         return () => {
             if (wavesurfer.current) {
@@ -49,7 +53,7 @@ const AudioPlayer = ({ audioUrl }) => {
             }
         }
 
-    }, [audioUrl])
+    }, [audioUrl, onTimeUpdate])
 
     const handlePlayPause = () => {
         if (!wavesurfer.current) {

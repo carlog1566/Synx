@@ -11,7 +11,7 @@ import AudioPlayer from "../components/AudioPlayer";
 
 const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.trunc(seconds % 60);
     
     const paddedSecs = secs.toString().padStart(2, '0');
     
@@ -23,6 +23,7 @@ const SongDetailPage = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [song, setSong] = useState(null)
+    const [currentTime, setCurrentTime] = useState(0)
     const [selectedInstrument, setSelectedInstrument] = useState('guitar')
 
     useEffect(() => {
@@ -129,7 +130,7 @@ const SongDetailPage = () => {
 
                 {/* Audio Player */}
                 {song.audio_file && (
-                    <AudioPlayer audioUrl={song.audio_file} />
+                    <AudioPlayer audioUrl={song.audio_file} onTimeUpdate={setCurrentTime} />
                 )}
 
                 {/* Controls Section */}
@@ -156,7 +157,7 @@ const SongDetailPage = () => {
                 {song.analyzed && (
                     <div className="bg-white rounded-2xl shadow-lg p-8">
                         {/* <TabDisplay tabs={song.tabs} instrument={selectedInstrument} /> */}
-                        <FretboardDisplay tabData={song.tabs.guitar} totalTime={song.duration} currentTime={6} formatDuration={formatDuration}/>
+                        <FretboardDisplay tabData={song.tabs.guitar} totalTime={song.duration} currentTime={currentTime} formatDuration={formatDuration}/>
                     </div>
                 )}
             </div>
