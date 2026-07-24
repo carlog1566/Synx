@@ -29,7 +29,7 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration }) =
                         )
                     })}
                     {tabData.map((chord, index) => {
-                        const isActive = (chord['time'] <= currentTime && (!tabData[index + 1] || tabData[index + 1]['time'] > currentTime))
+                        const isActive = ((currentTime >= 0) && (chord['time'] <= currentTime) && (!tabData[index + 1] || tabData[index + 1]['time'] > currentTime))
                         const xPosition = PADDING_LEFT + (CHORD_WIDTH * index) + (CHORD_WIDTH / 2)
                         
                         return (
