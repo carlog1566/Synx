@@ -1,12 +1,13 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, act } from 'react'
 import ChordColumn from './ChordColumn'
+
+const CHORD_WIDTH = 80;
+const STRING_SPACING = 30;
+const PADDING_LEFT = 40;
+const PADDING_TOP = 65;
 
 const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration }) => {
     const STRINGS = ['E', 'A', 'D', 'G', 'B', 'e'];
-    const CHORD_WIDTH = 80;
-    const STRING_SPACING = 30;
-    const PADDING_LEFT = 40;
-    const PADDING_TOP = 65;
     const total_width = (tabData.length * CHORD_WIDTH) + PADDING_LEFT;
     const total_height = (STRINGS.length * STRING_SPACING) + PADDING_TOP + 10;
 
@@ -35,6 +36,29 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration }) =
         })
     }, [activeIndex])
 
+    const getPlayheadX = () => {
+        if (activeIndex === -1) {
+            return CHORD_WIDTH - (CHORD_WIDTH / 2)
+        }
+
+        const currentChord = tabData[activeIndex]
+        const nextChord = tabData[activeIndex + 1]
+        const currentChordX = activeIndex * CHORD_WIDTH + (CHORD_WIDTH / 2)
+        const timeDiff = nextChord.time - currentChord.time
+
+        if (!nextChord || timeDiff === 0) {
+            return currentChordX
+        }
+        
+        const rawProgress = (currentTime - currentChord.time) / timeDiff
+        const progress = Math.min(1, Math.max(0, rawProgress))
+        const nextChordX = (activeIndex + 1) * CHORD_WIDTH + (CHORD_WIDTH / 2)
+
+        return currentChordX + (progress * (nextChordX - currentChordX))
+    }
+
+    const playheadX = getPlayheadX()
+
     return (
         <>
             <div className="text-center">
@@ -53,6 +77,7 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration }) =
                             </text>
                         )
                     })}
+
                     {tabData.map((chord, index) => {
                         const isActive = ((currentTime >= 0) && (chord['time'] <= currentTime) && (!tabData[index + 1] || tabData[index + 1]['time'] > currentTime))
                         const xPosition = PADDING_LEFT + (CHORD_WIDTH * index) + (CHORD_WIDTH / 2)
@@ -70,6 +95,16 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration }) =
                             />
                         )
                     })}
+
+                    <line
+                        x1={playheadX}
+                        y1={PADDING_TOP - 60}
+                        x2={playheadX}
+                        y2={total_height - 15}
+                        stroke="#9333ea"
+                        strokeWidth={2}
+                        opacity={0.5}
+                    />
                 </svg>
             </div>
         </>
