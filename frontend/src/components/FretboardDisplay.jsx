@@ -44,9 +44,14 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration }) =
         const currentChord = tabData[activeIndex]
         const nextChord = tabData[activeIndex + 1]
         const currentChordX = activeIndex * CHORD_WIDTH + (CHORD_WIDTH / 2)
+
+        if (!nextChord) {
+            return currentChordX
+        }
+
         const timeDiff = nextChord.time - currentChord.time
 
-        if (!nextChord || timeDiff === 0) {
+        if (timeDiff === 0) {
             return currentChordX
         }
         
