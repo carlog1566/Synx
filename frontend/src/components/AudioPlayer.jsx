@@ -34,6 +34,12 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
 
             wavesurfer.current.seekTo(position)
             onTimeUpdate(timeInSeconds)
+        },
+
+        stop: () => {
+            wavesurfer.current.pause()
+            wavesurfer.current.destroy()
+            wavesurfer.current = null
         }
     }))
 

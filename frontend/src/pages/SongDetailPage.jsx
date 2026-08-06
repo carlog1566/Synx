@@ -1,5 +1,5 @@
 import { songAPI } from "../services/api";
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
 import SongDetailNav from "../components/SongDetailNav";
 import Error from "../components/Error";
@@ -26,6 +26,7 @@ const SongDetailPage = () => {
     const [currentTime, setCurrentTime] = useState(0)
     const [selectedInstrument, setSelectedInstrument] = useState('guitar')
     const audioPlayerRef = useRef(null)
+    const navigate = useNavigate()
 
     useEffect(() => {
         const fetchSong = async () => {
@@ -50,10 +51,15 @@ const SongDetailPage = () => {
         audioPlayerRef.current?.seekTo(timeInSeconds)
     }
 
+    const handleNavigateBack = () => {
+        audioPlayerRef.current?.stop()
+        navigate('/songs')
+    }
+
     if (loading) {
         return (
             <div>
-                <SongDetailNav />
+                <SongDetailNav onNavigateBack={handleNavigateBack}/>
                 <Loading />
             </div>
         )
@@ -62,7 +68,7 @@ const SongDetailPage = () => {
     if (error) {
         return (
             <div>
-                <SongDetailNav />
+                <SongDetailNav onNavigateBack={handleNavigateBack}/>
                 <Error error={error} />
             </div>
         )
@@ -71,7 +77,7 @@ const SongDetailPage = () => {
     if (!song) {
         return (
             <div>
-                <SongDetailNav />
+                <SongDetailNav onNavigateBack={handleNavigateBack}/>
                 <h2>Song Not Found</h2>
             </div>
         )
@@ -79,7 +85,7 @@ const SongDetailPage = () => {
 
     return (
         <div className="min-h-screen">
-            <SongDetailNav />
+            <SongDetailNav onNavigateBack={handleNavigateBack}/>
             <div className="container mx-auto px-4 py-8 max-w-6xl">
 
                 {/* Song Header */}
