@@ -6,12 +6,12 @@ const STRING_SPACING = 30;
 const PADDING_LEFT = 40;
 const PADDING_TOP = 65;
 
-const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration }) => {
+const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration, onSeek }) => {
     const STRINGS = ['E', 'A', 'D', 'G', 'B', 'e'];
     const total_width = (tabData.length * CHORD_WIDTH) + PADDING_LEFT;
     const total_height = (STRINGS.length * STRING_SPACING) + PADDING_TOP + 10;
-
     const scrollContainerRef = useRef(null);
+
     const activeIndex = tabData.findIndex((chord, index) => {
         if ((currentTime >= 0) && (chord['time'] <= currentTime) && (!tabData[index + 1] || tabData[index + 1]['time'] > currentTime)) {
             return true
@@ -96,7 +96,7 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration }) =
                                 strings={STRINGS}
                                 stringSpacing={STRING_SPACING}
                                 paddingTop={PADDING_TOP}
-                                formatDuration={formatDuration}
+                                onSeek={onSeek}
                             />
                         )
                     })}

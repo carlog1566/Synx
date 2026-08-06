@@ -1,8 +1,9 @@
-const ChordColumn = ({ chordData, xPosition, isActive, strings, stringSpacing, paddingTop, formatDuration }) => {
+const ChordColumn = ({ chordData, xPosition, isActive, strings, stringSpacing, paddingTop, onSeek }) => {
 
     return (
-        <g>
+        <g onClick={() => {onSeek(chordData.time)}}>
             <text x={xPosition} y={paddingTop - 30} textAnchor="middle">{chordData['chord']}</text>
+
             {isActive && (
                 <rect
                     x={xPosition - 40}
@@ -14,6 +15,7 @@ const ChordColumn = ({ chordData, xPosition, isActive, strings, stringSpacing, p
                     rx={10}
                 />
             )}
+
             {strings.map((stringName, stringIndex) => {
                 const y = paddingTop + (stringIndex * stringSpacing)
                 const fret = chordData["positions"][stringName] ?? '-'
@@ -42,6 +44,14 @@ const ChordColumn = ({ chordData, xPosition, isActive, strings, stringSpacing, p
                     </g>
                 )
             })}
+            
+            <rect
+                x={xPosition - 40}
+                y={paddingTop - 53}
+                width={80}
+                height={40 + (strings.length * stringSpacing)}
+                fill="transparent"
+            />
         </g>
     )
 }

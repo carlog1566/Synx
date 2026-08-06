@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState } from 'react';
+import {useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 
 const formatDuration = (seconds) => {
@@ -10,13 +10,32 @@ const formatDuration = (seconds) => {
     return `${mins}:${paddedSecs}`;
 }
 
-const AudioPlayer = ({ audioUrl, onTimeUpdate }) => {
-    const waveformRef = useRef(null);
-    const wavesurfer = useRef(null);
+const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [loading, setLoading] = useState(true);
+    const waveformRef = useRef(null);
+    const wavesurfer = useRef(null);
+
+    useImperativeHandle(ref, () => ({
+        seekTo: (timeInSeconds) => {
+            if (!wavesurfer.current) {
+                return
+            }
+
+            const duration = wavesurfer.current.getDuration()
+
+            if (!duration) {
+                return
+            }
+
+            const position = timeInSeconds / duration
+
+            wavesurfer.current.seekTo(position)
+            onTimeUpdate(timeInSeconds)
+        }
+    }))
 
     useEffect(() => {
         if (!waveformRef.current) { 

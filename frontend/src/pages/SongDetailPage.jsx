@@ -1,6 +1,6 @@
 import { songAPI } from "../services/api";
 import { Link, useParams } from 'react-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import SongDetailNav from "../components/SongDetailNav";
 import Error from "../components/Error";
 import Loading from "../components/Loading";
@@ -25,6 +25,7 @@ const SongDetailPage = () => {
     const [song, setSong] = useState(null)
     const [currentTime, setCurrentTime] = useState(0)
     const [selectedInstrument, setSelectedInstrument] = useState('guitar')
+    const audioPlayerRef = useRef(null)
 
     useEffect(() => {
         const fetchSong = async () => {
@@ -40,6 +41,14 @@ const SongDetailPage = () => {
 
         fetchSong()
     }, [id])
+
+    const handleSeek = (timeInSeconds) => {
+        if (!audioPlayerRef.current) {
+            return
+        }
+
+        audioPlayerRef.current?.seekTo(timeInSeconds)
+    }
 
     if (loading) {
         return (
@@ -130,7 +139,11 @@ const SongDetailPage = () => {
 
                 {/* Audio Player */}
                 {song.audio_file && (
-                    <AudioPlayer audioUrl={song.audio_file} onTimeUpdate={setCurrentTime} />
+                    <AudioPlayer 
+                        ref={audioPlayerRef} 
+                        audioUrl={song.audio_file} 
+                        onTimeUpdate={setCurrentTime}
+                    />
                 )}
 
                 {/* Controls Section */}
@@ -156,8 +169,17 @@ const SongDetailPage = () => {
                 {/* Tabs Display */}
                 {song.analyzed && (
                     <div className="bg-white rounded-2xl shadow-lg p-8">
-                        {/* <TabDisplay tabs={song.tabs} instrument={selectedInstrument} /> */}
-                        <FretboardDisplay tabData={song.tabs.guitar} totalTime={song.duration} currentTime={currentTime} formatDuration={formatDuration}/>
+                        {/* <TabDisplay 
+                            tabs={song.tabs} 
+                            instrument={selectedInstrument} 
+                        /> */}
+                        <FretboardDisplay 
+                            tabData={song.tabs.guitar} 
+                            totalTime={song.duration} 
+                            currentTime={currentTime} 
+                            formatDuration={formatDuration} 
+                            onSeek={handleSeek} 
+                        />
                     </div>
                 )}
             </div>
