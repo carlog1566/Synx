@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import SpeedControl from './SpeedControl';
 
 const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -15,6 +16,7 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
     const waveformRef = useRef(null);
     const wavesurfer = useRef(null);
 
@@ -40,7 +42,7 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
             wavesurfer.current.pause()
             wavesurfer.current.destroy()
             wavesurfer.current = null
-        }
+        },
     }))
 
     useEffect(() => {
@@ -78,7 +80,7 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
             }
         }
 
-    }, [audioUrl, onTimeUpdate])
+    }, [audioUrl])
 
     const handlePlayPause = () => {
         if (!wavesurfer.current) {
@@ -86,6 +88,11 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
         }
 
         wavesurfer.current.playPause()
+    }
+
+    const handlePlaybackSpeed = (speed) => {
+        setPlaybackSpeed(speed)
+        wavesurfer.current.setPlaybackRate(speed)
     }
 
     return (
@@ -113,6 +120,12 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
                         </svg>
                     ))}
                 </button>
+                
+                {/* Speed Control */}
+                <SpeedControl
+                    currentSpeed={playbackSpeed}
+                    onSpeedChange={handlePlaybackSpeed}
+                />
                 
                 {/* Time Display */}
                 <div className="text-gray-600 font-mono">
