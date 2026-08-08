@@ -1,5 +1,6 @@
-import {useEffect, useRef, useState } from 'react';
+import {useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import SpeedControl from './SpeedControl';
 
 const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -10,13 +11,39 @@ const formatDuration = (seconds) => {
     return `${mins}:${paddedSecs}`;
 }
 
-const AudioPlayer = ({ audioUrl }) => {
-    const waveformRef = useRef(null);
-    const wavesurfer = useRef(null);
+const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+    const waveformRef = useRef(null);
+    const wavesurfer = useRef(null);
+
+    useImperativeHandle(ref, () => ({
+        seekTo: (timeInSeconds) => {
+            if (!wavesurfer.current) {
+                return
+            }
+
+            const duration = wavesurfer.current.getDuration()
+
+            if (!duration) {
+                return
+            }
+
+            const position = timeInSeconds / duration
+
+            wavesurfer.current.seekTo(position)
+            onTimeUpdate(timeInSeconds)
+        },
+
+        stop: () => {
+            wavesurfer.current.pause()
+            wavesurfer.current.destroy()
+            wavesurfer.current = null
+        },
+    }))
 
     useEffect(() => {
         if (!waveformRef.current) { 
@@ -41,7 +68,11 @@ const AudioPlayer = ({ audioUrl }) => {
             setDuration(wavesurfer.current.getDuration())
             setLoading(false)   
         })
-        wavesurfer.current.on('audioprocess', () => {setCurrentTime(wavesurfer.current.getCurrentTime())})
+        wavesurfer.current.on('audioprocess', () => {
+            const time = wavesurfer.current.getCurrentTime()
+            onTimeUpdate(time)
+            setCurrentTime(time)
+        })
 
         return () => {
             if (wavesurfer.current) {
@@ -57,6 +88,14 @@ const AudioPlayer = ({ audioUrl }) => {
         }
 
         wavesurfer.current.playPause()
+    }
+
+    const handlePlaybackSpeed = (speed) => {
+        setPlaybackSpeed(speed)
+
+        if (wavesurfer.current) {
+            wavesurfer.current.setPlaybackRate(speed)
+        }
     }
 
     return (
@@ -84,6 +123,12 @@ const AudioPlayer = ({ audioUrl }) => {
                         </svg>
                     ))}
                 </button>
+                
+                {/* Speed Control */}
+                <SpeedControl
+                    currentSpeed={playbackSpeed}
+                    onSpeedChange={handlePlaybackSpeed}
+                />
                 
                 {/* Time Display */}
                 <div className="text-gray-600 font-mono">

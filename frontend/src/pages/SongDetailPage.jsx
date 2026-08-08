@@ -1,16 +1,17 @@
 import { songAPI } from "../services/api";
-import { Link, useParams } from 'react-router';
-import { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router';
+import { useState, useEffect, useRef } from 'react';
 import SongDetailNav from "../components/SongDetailNav";
 import Error from "../components/Error";
 import Loading from "../components/Loading";
 import TabDisplay from "../components/TabDisplay";
+import FretboardDisplay from "../components/FretboardDisplay";
 import AudioPlayer from "../components/AudioPlayer";
 
 
 const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.trunc(seconds % 60);
     
     const paddedSecs = secs.toString().padStart(2, '0');
     
@@ -22,7 +23,10 @@ const SongDetailPage = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [song, setSong] = useState(null)
+    const [currentTime, setCurrentTime] = useState(0)
     const [selectedInstrument, setSelectedInstrument] = useState('guitar')
+    const audioPlayerRef = useRef(null)
+    const navigate = useNavigate()
 
     useEffect(() => {
         const fetchSong = async () => {
@@ -39,10 +43,23 @@ const SongDetailPage = () => {
         fetchSong()
     }, [id])
 
+    const handleSeek = (timeInSeconds) => {
+        if (!audioPlayerRef.current) {
+            return
+        }
+
+        audioPlayerRef.current?.seekTo(timeInSeconds)
+    }
+
+    const handleNavigateBack = () => {
+        audioPlayerRef.current?.stop()
+        navigate('/songs')
+    }
+
     if (loading) {
         return (
             <div>
-                <SongDetailNav />
+                <SongDetailNav onNavigateBack={handleNavigateBack}/>
                 <Loading />
             </div>
         )
@@ -51,7 +68,7 @@ const SongDetailPage = () => {
     if (error) {
         return (
             <div>
-                <SongDetailNav />
+                <SongDetailNav onNavigateBack={handleNavigateBack}/>
                 <Error error={error} />
             </div>
         )
@@ -60,7 +77,7 @@ const SongDetailPage = () => {
     if (!song) {
         return (
             <div>
-                <SongDetailNav />
+                <SongDetailNav onNavigateBack={handleNavigateBack}/>
                 <h2>Song Not Found</h2>
             </div>
         )
@@ -68,7 +85,7 @@ const SongDetailPage = () => {
 
     return (
         <div className="min-h-screen">
-            <SongDetailNav />
+            <SongDetailNav onNavigateBack={handleNavigateBack}/>
             <div className="container mx-auto px-4 py-8 max-w-6xl">
 
                 {/* Song Header */}
@@ -128,7 +145,11 @@ const SongDetailPage = () => {
 
                 {/* Audio Player */}
                 {song.audio_file && (
-                    <AudioPlayer audioUrl={song.audio_file} />
+                    <AudioPlayer 
+                        ref={audioPlayerRef} 
+                        audioUrl={song.audio_file} 
+                        onTimeUpdate={setCurrentTime}
+                    />
                 )}
 
                 {/* Controls Section */}
@@ -154,7 +175,17 @@ const SongDetailPage = () => {
                 {/* Tabs Display */}
                 {song.analyzed && (
                     <div className="bg-white rounded-2xl shadow-lg p-8">
-                        <TabDisplay tabs={song.tabs} instrument={selectedInstrument} />
+                        {/* <TabDisplay 
+                            tabs={song.tabs} 
+                            instrument={selectedInstrument} 
+                        /> */}
+                        <FretboardDisplay 
+                            tabData={song.tabs.guitar} 
+                            totalTime={song.duration} 
+                            currentTime={currentTime} 
+                            formatDuration={formatDuration} 
+                            onSeek={handleSeek} 
+                        />
                     </div>
                 )}
             </div>

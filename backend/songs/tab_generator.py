@@ -35,8 +35,25 @@ class TabGenerator:
 
 
     def generate(self, chords, instrument='guitar'):
+        if instrument == 'guitar':
+            chord_dict = self.GUITAR_CHORDS
+
+        tabs = []
+        strings = ['E', 'A', 'D', 'G', 'B', 'e']
+
+        for chord in chords:
+            time = chord['time']
+            chord_name = chord['chord']
+            positions = dict(zip(strings, self._get_chord_diagram(chord_name, chord_dict)))
+
+            tabs.append({'time': time, 'chord': chord_name, 'positions': positions})
+
+        return tabs
+    
+
+    def generate_ascii(self, chords, instrument='guitar'):
         """
-        Main method used to Generate tablature from chord progression
+        Method used to generate ASCII tablature from chord progression
 
         Parameters
         ----------
@@ -49,7 +66,7 @@ class TabGenerator:
         Returns
         -------
         str
-            Formatted ASCII tablature (To be changed soon)
+            Formatted ASCII tablature
         """
 
         if instrument == 'guitar':
