@@ -8,8 +8,8 @@ const Navbar = () => {
              
             {/* Name */}
             <div>
-              <h1 className="text-4xl pb-1 font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                <Link to="/">
+              <h1 className="text-4xl pb-1 font-bold text-transparent">
+                <Link to="/" className="bg-gradient-to-r from-primary to-secondary bg-clip-text">
                   Synx
                 </Link>
               </h1>
