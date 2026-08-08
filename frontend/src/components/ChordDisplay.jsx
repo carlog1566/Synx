@@ -1,6 +1,6 @@
 import React from 'react'
 
-function ChordDisplay({ chords }) {
+const ChordDisplay = ({ chords }) => {
 
     if (!chords || chords.length === 0) {
         return null;
