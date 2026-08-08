@@ -251,7 +251,9 @@ Frontend runs at: `http://localhost:3000`
 * [x] Chord detection
 * [x] Auto-analysis on upload
 * [x] Tab generation
-* [ ] Interactive tab player (in progress)
+* [x] Interactive tab player
+* [ ] Deployment (in progress)
 * [ ] User authentication (planned)
 * [ ] Song recommendations (planned)
+* [ ] Improve tab generation (planned)
 * [ ] Computer Vision Tracking?
