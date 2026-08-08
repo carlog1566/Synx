@@ -20,7 +20,7 @@ const SongListPage = () => {
     const [songs, setSongs] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [analyzingId, setAnalyzingId] = useState(null)
+    const [analyzingIds, setAnalyzingIds] = useState([])
 
     useEffect(() => {
         fetchSongs()
@@ -39,7 +39,7 @@ const SongListPage = () => {
 
     const handleAnalyze = async (songId) => {
         console.log('Analyzing song:', songId)
-        setAnalyzingId(songId)
+        setAnalyzingIds(prev => [...prev, songId])
 
         setSongs(prevSongs => prevSongs.map(song => 
             song.id === songId ? {...song, analysis_failed: false} : song
@@ -57,7 +57,7 @@ const SongListPage = () => {
                 song.id === songId ? {...song, analysis_failed: true} : song
             ))
         } finally {
-            setAnalyzingId(null)
+            setAnalyzingIds(prev => prev.filter(id => id !== songId))
         }
     }
 
@@ -102,7 +102,13 @@ const SongListPage = () => {
                     </div>
                 ) : (      
                     songs.map((song) => (
-                        <Song key={song.id} song={song} analyzingId={analyzingId} handleAnalyze={handleAnalyze} formatDuration={formatDuration} />
+                        <Song 
+                            key={song.id} 
+                            song={song} 
+                            analyzingIds={analyzingIds} 
+                            handleAnalyze={handleAnalyze} 
+                            formatDuration={formatDuration}
+                        />
                     )
                 ))}
             </div>
