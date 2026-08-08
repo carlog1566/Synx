@@ -38,7 +38,7 @@ const HomeCard = ({ icon: Icon, title, description, delay }) => (
     <FadeUp delay={delay}>
         <motion.div
             whileHover={{ y: -4 }}
-            className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border border-gray-100"
+            className="bg-white rounded-xl p-6 h-full shadow-md hover:shadow-xl transition-shadow border border-gray-100"
         >
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 w-14 h-14 rounded-xl flex items-center justify-center mb-4">
                 <Icon className="text-2xl text-primary" />
@@ -64,8 +64,8 @@ const HomePage = () => {
                         transition={{ duration: 0.6 }}
                         className="text-left"
                     >
-                        <div className="flex items-center gap-3 mb-4">
-                            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent leading-normal">
                                 Synx
                             </h1>
                         </div>
@@ -74,7 +74,7 @@ const HomePage = () => {
                             Turn any song into interactive tabs
                         </p>
 
-                        <p className="text-base md:text-lg text-gray-600 mb-8 max-w-md">
+                        <p className="text-base md:text-lg text-gray-600 mb-8 max-w-lg">
                             Upload your favorite songs and let AI detect chords, generate tabs,
                             and create an interactive learning experience.
                         </p>
