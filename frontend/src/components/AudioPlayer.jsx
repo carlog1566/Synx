@@ -92,7 +92,10 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
 
     const handlePlaybackSpeed = (speed) => {
         setPlaybackSpeed(speed)
-        wavesurfer.current.setPlaybackRate(speed)
+
+        if (wavesurfer.current) {
+            wavesurfer.current.setPlaybackRate(speed)
+        }
     }
 
     return (

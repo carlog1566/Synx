@@ -7,6 +7,14 @@ const PADDING_LEFT = 40;
 const PADDING_TOP = 65;
 
 const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration, onSeek }) => {
+    if (!tabData || tabData.length === 0) {
+        return (
+            <div className="text-center">
+                No chords detected for this song!
+            </div>
+        )
+    }
+    
     const STRINGS = ['E', 'A', 'D', 'G', 'B', 'e'];
     const total_width = (tabData.length * CHORD_WIDTH) + PADDING_LEFT;
     const total_height = (STRINGS.length * STRING_SPACING) + PADDING_TOP + 10;
