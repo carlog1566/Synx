@@ -3,6 +3,7 @@ import { motion, useMotionValue, useAnimationFrame } from 'framer-motion'
 import { FaUpload, FaRobot, FaMusic, FaGuitar, FaBolt, FaChartLine, FaSave, FaBullseye, FaRocket, FaArrowRight } from 'react-icons/fa'
 import ChordStrip from '../components/ChordStrip'
 
+
 const FadeUp = ({ children, delay = 0 }) => (
     <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -156,12 +157,42 @@ const HomePage = () => {
                     </FadeUp>
 
                     <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        <HomeCard icon={FaGuitar} title="Multiple Instruments" description="Guitar tabs supported, with more coming soon" delay={0} />
-                        <HomeCard icon={FaBolt} title="Instant Analysis" description="Chord detection completes in seconds, not minutes" delay={0.05} />
-                        <HomeCard icon={FaChartLine} title="Chord Progression" description="See the full chord timeline for any song" delay={0.1} />
-                        <HomeCard icon={FaSave} title="Save Your Library" description="Keep all your analyzed songs in one place" delay={0.15} />
-                        <HomeCard icon={FaBullseye} title="Beginner Friendly" description="Simple chord diagrams perfect for learning" delay={0.2} />
-                        <HomeCard icon={FaRocket} title="Always Improving" description="Regular updates with new features and better accuracy" delay={0.25} />
+                        <HomeCard 
+                            icon={FaGuitar} 
+                            title="Multiple Instruments" 
+                            description="Guitar tabs supported, with more coming soon" 
+                            delay={0} 
+                        />
+                        <HomeCard 
+                            icon={FaBolt} 
+                            title="Instant Analysis" 
+                            description="Chord detection completes in seconds, not minutes" 
+                            delay={0.05} 
+                        />
+                        <HomeCard 
+                            icon={FaChartLine} 
+                            title="Chord Progression" 
+                            description="See the full chord timeline for any song" 
+                            delay={0.1} 
+                        />
+                        <HomeCard 
+                            icon={FaSave} 
+                            title="Save Your Library" 
+                            description="Keep all your analyzed songs in one place" 
+                            delay={0.15} 
+                        />
+                        <HomeCard 
+                            icon={FaBullseye} 
+                            title="Beginner Friendly" 
+                            description="Simple chord diagrams perfect for learning"
+                            delay={0.2} 
+                        />
+                        <HomeCard 
+                            icon={FaRocket} 
+                            title="Always Improving" 
+                            description="Regular updates with new features and better accuracy" 
+                            delay={0.25} 
+                        />
                     </div>
                 </div>
             </div>
