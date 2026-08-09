@@ -84,7 +84,7 @@ const SongListPage = () => {
 
     return (
         <div>
-            <div className="mb-8">
+            <div className="mb-8 md:pt-0 pt-12">
                     <AddSongForm onSongAdded={handleSongAdded} />
             </div>
 

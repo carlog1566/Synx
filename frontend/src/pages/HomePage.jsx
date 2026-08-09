@@ -52,10 +52,11 @@ const HomeCard = ({ icon: Icon, title, description, delay }) => (
 
 
 const HomePage = () => {
+
     return (
         <div className="mb-8">
             {/* Hero Section */}
-            <section className="relative overflow-hidden rounded-3xl py-16 md:py-24">
+            <section className="relative overflow-hidden rounded-3xl py-16 md:py-24 md:pb-36">
                 <div className="container mx-auto px-6 md:px-4 grid md:grid-cols-2 gap-10 items-center">
 
                     {/* Brand & CTA Buttons */}
@@ -65,22 +66,22 @@ const HomePage = () => {
                         transition={{ duration: 0.6 }}
                         className="text-left"
                     >
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent leading-normal">
+                        <div className="flex w-full justify-center items-center md:justify-start gap-3">
+                            <h1 className="text-5xl text-center md:text-6xl md:text-left font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent leading-normal">
                                 Synx
                             </h1>
                         </div>
 
-                        <p className="text-xl md:text-2xl text-gray-700 mb-4 font-light">
+                        <p className="text-xl text-center md:text-2xl md:text-left text-gray-700 mb-4 font-light">
                             Turn any song into interactive tabs
                         </p>
 
-                        <p className="text-base md:text-lg text-gray-600 mb-8 max-w-lg">
+                        <p className="text-base text-center md:text-lg md:text-left text-gray-600 mb-8 max-w-lg">
                             Upload your favorite songs and let AI detect chords, generate tabs,
                             and create an interactive learning experience.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex flex-col md:flex-row gap-4">
                             <motion.a
                                 href="/songs"
                                 whileHover={{ scale: 1.05 }}
