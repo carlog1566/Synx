@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, useMotionValue, useAnimationFrame } from 'framer-motion'
 import MiniChordDiagram from './MiniChordDiagram'
 
@@ -23,7 +23,8 @@ const TOTAL_WIDTH = CHORD_PREVIEWS.length * STEP_WIDTH
 const SPEED = 45 // pixels per second
 
 const ChordStrip = () => {
-    const panelWidth = 420
+    const containerRef = useRef(null)
+    const [panelWidth, setPanelWidth] = useState(572)
     const spacer = panelWidth / 2 - CARD_WIDTH / 2
 
     const x = useMotionValue(0)
@@ -31,13 +32,28 @@ const ChordStrip = () => {
     const activeIndexRef = useRef(0)
     const [activeIndex, setActiveIndex] = useState(0)
 
+    useEffect(() => {
+        if (!containerRef.current) return
+
+        const updateWidth = () => {
+            setPanelWidth(containerRef.current.clientWidth)
+        }
+
+        updateWidth()
+
+        const observer = new ResizeObserver(updateWidth)
+        observer.observe(containerRef.current)
+
+        return () => observer.disconnect()
+    }, [])
+
     useAnimationFrame((_, delta) => {
-        distanceRef.current += (SPEED * delta) / 750
+        distanceRef.current += (SPEED * delta) / 1000
 
         const wrapped = distanceRef.current % TOTAL_WIDTH
         x.set(-wrapped)
 
-        const idx = Math.round((distanceRef.current + 75) / STEP_WIDTH) % CHORD_PREVIEWS.length
+        const idx = Math.round(wrapped / STEP_WIDTH) % CHORD_PREVIEWS.length
         if (idx !== activeIndexRef.current) {
             activeIndexRef.current = idx
             setActiveIndex(idx)
@@ -47,7 +63,7 @@ const ChordStrip = () => {
     const row = [...CHORD_PREVIEWS, ...CHORD_PREVIEWS]
 
     return (
-        <div className="relative h-56 overflow-hidden">
+        <div className="relative h-56 max-w-[572px] overflow-hidden">
             {/* Fixed Playhead Line */}
             <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-purple-300 -translate-x-1/2 z-10" />
             <div className="absolute left-1/2 -translate-x-1/2  w-2 h-2 rounded-full bg-purple-500 z-10" />
