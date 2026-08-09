@@ -33,7 +33,9 @@ const ChordStrip = () => {
     const [activeIndex, setActiveIndex] = useState(0)
 
     useEffect(() => {
-        if (!containerRef.current) return
+        if (!containerRef.current) {
+            return
+        }
 
         const updateWidth = () => {
             setPanelWidth(containerRef.current.clientWidth)
@@ -63,7 +65,7 @@ const ChordStrip = () => {
     const row = [...CHORD_PREVIEWS, ...CHORD_PREVIEWS]
 
     return (
-        <div className="relative h-56 max-w-[572px] overflow-hidden">
+        <div ref={containerRef} className="relative h-56 max-w-[572px] overflow-hidden">
             {/* Fixed Playhead Line */}
             <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-purple-300 -translate-x-1/2 z-10" />
             <div className="absolute left-1/2 -translate-x-1/2  w-2 h-2 rounded-full bg-purple-500 z-10" />
