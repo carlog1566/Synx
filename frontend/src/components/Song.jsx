@@ -97,7 +97,7 @@ const Song = ({ song, analyzingIds, handleAnalyze, formatDuration }) => {
                 </div>
 
                 {/* Chord Display */}
-                {song.chords && <ChordDisplay chords={song.chords} />}
+                {/* {song.chords && <ChordDisplay chords={song.chords} />} */}
             </div>
         </div>
     )

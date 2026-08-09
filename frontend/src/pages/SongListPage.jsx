@@ -1,6 +1,7 @@
 import { songAPI } from '../services/api'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router'
+import { motion } from 'framer-motion'
 import ChordDisplay from '../components/ChordDisplay'
 import AddSongForm from '../components/AddSongForm'
 import Song from '../components/Song'
@@ -83,8 +84,15 @@ const SongListPage = () => {
 
 
     return (
-        <div>
-            <div className="mb-8 md:pt-0 pt-12">
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+                duration: 0.4,
+                ease: 'easeOut'
+            }}
+        >
+            <div className="mb-8 md:pt-0 pt-20">
                     <AddSongForm onSongAdded={handleSongAdded} />
             </div>
 
@@ -112,7 +120,7 @@ const SongListPage = () => {
                     )
                 ))}
             </div>
-        </div>
+        </motion.div>
     )
 } 
 

@@ -20,7 +20,7 @@ const StepCard = ({ icon: Icon, number, title, description, delay }) => (
     <FadeUp delay={delay}>
         <div className="text-center group">
             <motion.div
-                whileHover={{ scale: 1.08, rotate: 3 }}
+                whileHover={{ scale: 1.08 }}
                 transition={{ type: 'spring', stiffness: 300 }}
                 className="bg-gradient-to-br from-purple-100 to-pink-100 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:shadow-md transition-shadow"
             >
