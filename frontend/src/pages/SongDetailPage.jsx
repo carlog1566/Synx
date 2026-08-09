@@ -1,6 +1,7 @@
 import { songAPI } from "../services/api";
 import { Link, useParams, useNavigate } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion'
 import SongDetailNav from "../components/SongDetailNav";
 import Error from "../components/Error";
 import Loading from "../components/Loading";
@@ -84,7 +85,15 @@ const SongDetailPage = () => {
     }
 
     return (
-        <div className="min-h-screen">
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+                duration: 0.4,
+                ease: 'easeOut'
+            }}
+            className="min-h-screen pt-16 md:pt-0"
+        >
             <SongDetailNav onNavigateBack={handleNavigateBack}/>
             <div className="container mx-auto px-4 py-8 max-w-6xl">
 
@@ -189,7 +198,7 @@ const SongDetailPage = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     )
 }
 

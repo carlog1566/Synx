@@ -106,34 +106,48 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
             <div ref={waveformRef} className="mb-4"></div>
             
             {/* Controls */}
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-2 md:grid-cols-3 items-center">
 
-                {/* Play/Pause Button */}
-                <button onClick={handlePlayPause} disabled={loading} className="bg-fourth hover:bg-primary text-white rounded-full p-4 transition-colors duration-300 cursor-pointer">
+                {/* Play Button */}
+                <div className="flex justify-start">
+                    <button
+                        onClick={handlePlayPause}
+                        disabled={loading}
+                        className="bg-fourth hover:bg-primary text-white rounded-full p-4 transition-colors duration-300 cursor-pointer"
+                    >
+                        {loading ? 'Loading...' : (isPlaying ? (
+                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    fillRule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        ) : (
+                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2a1 1 0 000-1.664l-3-2a1.555 1.555 0 00-1.555.832z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        ))}
+                    </button>
+                </div>
 
-                    {loading ? 'Loading...' : (isPlaying ? (
-                        // Pause Icon
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                    ) : (
-                        // Play Icon
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                        </svg>
-                    ))}
-                </button>
-                
-                {/* Speed Control */}
-                <SpeedControl
-                    currentSpeed={playbackSpeed}
-                    onSpeedChange={handlePlaybackSpeed}
-                />
-                
-                {/* Time Display */}
-                <div className="text-gray-600 font-mono">
+                {/* Time */}
+                <div className="flex justify-end text-gray-600 font-mono md:col-start-3">
                     {formatDuration(currentTime)} / {formatDuration(duration)}
                 </div>
+
+                {/* Speed */}
+                <div className="col-span-2 md:col-span-1 md:col-start-2 md:row-start-1 flex justify-center md:justify-center md:order-none order-last mt-2 md:mt-0">
+                    <SpeedControl
+                        currentSpeed={playbackSpeed}
+                        onSpeedChange={handlePlaybackSpeed}
+                    />
+                </div>
+
             </div>
         </div>
     )
