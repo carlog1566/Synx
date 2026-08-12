@@ -2,6 +2,8 @@
 
 ### A web application that analyzes audio files to extract chords and generate instrument tabs for learning.
 
+![View Synx Live.](https://www.synx.studio)
+
 ![Synx Demonstration](SynxGif.gif)
 
 ## Features
