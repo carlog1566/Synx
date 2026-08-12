@@ -2,6 +2,8 @@
 
 ### A web application that analyzes audio files to extract chords and generate instrument tabs for learning.
 
+![Synx Demonstration](SynxGif.gif)
+
 ## Features
 
 **Audio Upload**: Upload MP3/WAV files of songs
