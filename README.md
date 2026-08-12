@@ -254,8 +254,8 @@ Frontend runs at: `http://localhost:3000`
 * [x] Auto-analysis on upload
 * [x] Tab generation
 * [x] Interactive tab player
-* [ ] Deployment (in progress)
-* [ ] User authentication (planned)
+* [x] Deployment
+* [ ] User authentication (in progress)
 * [ ] Song recommendations (planned)
 * [ ] Improve tab generation (planned)
 * [ ] Computer Vision Tracking?
