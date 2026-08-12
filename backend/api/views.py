@@ -1,4 +1,7 @@
+import tempfile
+import os
 from django.shortcuts import render
+from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -18,27 +21,50 @@ class SongViewset(viewsets.ModelViewSet):
         song = self.get_object()
 
         if not song.audio_file:
-            return Response({'error': 'ERROR: Audio File not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+            return Response({'error': 'No audio file'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            detector = ChordDetector()
-            file_path = song.audio_file.path
-            chords = detector.analyze(file_path)
+            if settings.USE_S3:
+                # Download to a temp file since librosa needs a local path
+                with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp:
+                    for chunk in song.audio_file.chunks():
+                        tmp.write(chunk)
+                    tmp_path = tmp.name
+
+                try:
+                    detector = ChordDetector()
+                    chords = detector.analyze(tmp_path, step=2.0)
+                finally:
+                    os.unlink(tmp_path)  # Always clean up temp file
+            else:
+                detector = ChordDetector()
+                chords = detector.analyze(song.audio_file.path, step=2.0)
 
             tab_gen = TabGenerator()
             tabs = {
                 'guitar': tab_gen.generate(chords, 'guitar'),
-                # 'guitar_ascii': tab_gen.generate_ascii(chords,'guitar'),
             }
 
+            song.chords = chords
+            song.tabs = tabs
+            song.analyzed = True
+            song.save()
+
+            return Response(self.get_serializer(song).data)
+
         except Exception as e:
-            return Response({'error': 'ERROR: Failed to process audio file'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        song.chords = chords
-        song.tabs = tabs
-        song.analyzed = True
-        song.save()
+            return Response({'error': str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        serializer = self.get_serializer(song)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    # Defined to prepare for future auth
+    def get_queryset(self):
+        # return Song.objects.filter(owner=self.request.user) | Song.objects.filter(is_public=True)   # Uncomment when auth is implemented
+        return Song.objects.all()
+
+
+    # Defined to prepare for future auth
+    def perform_create(self, serializer):
+        # serializer.save(owner=self.request.user)    # Uncomment when auth is implemented
+        serializer.save()
