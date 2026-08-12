@@ -7,7 +7,7 @@ const SpeedControl = ({ currentSpeed, onSpeedChange }) => {
                 Speed:
             </span>
 
-            <div className="flex gap-2">
+            <div className="hidden md:flex gap-2">
                 {SPEED_OPTIONS.map(speed => (
                     <button
                         key={speed}
@@ -21,6 +21,19 @@ const SpeedControl = ({ currentSpeed, onSpeedChange }) => {
                     </button>
                 ))}
             </div>
+
+            {/* Mobile */}
+            <select
+                value={currentSpeed}
+                onChange={(e) => onSpeedChange(Number(e.target.value))}
+                className="md:hidden px-3 py-2 rounded-lg border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all duration-300 focus:border-purple-600 focus:outline-none"
+            >
+                {SPEED_OPTIONS.map(speed => (
+                    <option key={speed} value={speed}>
+                        {speed}x
+                    </option>
+                ))}
+            </select>
         </div>
     )
 }

@@ -1,6 +1,7 @@
 import { songAPI } from '../services/api'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router'
+import { motion } from 'framer-motion'
 import ChordDisplay from '../components/ChordDisplay'
 import AddSongForm from '../components/AddSongForm'
 import Song from '../components/Song'
@@ -20,7 +21,7 @@ const SongListPage = () => {
     const [songs, setSongs] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [analyzingId, setAnalyzingId] = useState(null)
+    const [analyzingIds, setAnalyzingIds] = useState([])
 
     useEffect(() => {
         fetchSongs()
@@ -39,7 +40,7 @@ const SongListPage = () => {
 
     const handleAnalyze = async (songId) => {
         console.log('Analyzing song:', songId)
-        setAnalyzingId(songId)
+        setAnalyzingIds(prev => [...prev, songId])
 
         setSongs(prevSongs => prevSongs.map(song => 
             song.id === songId ? {...song, analysis_failed: false} : song
@@ -57,7 +58,7 @@ const SongListPage = () => {
                 song.id === songId ? {...song, analysis_failed: true} : song
             ))
         } finally {
-            setAnalyzingId(null)
+            setAnalyzingIds(prev => prev.filter(id => id !== songId))
         }
     }
 
@@ -83,8 +84,15 @@ const SongListPage = () => {
 
 
     return (
-        <div>
-            <div className="mb-8">
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+                duration: 0.4,
+                ease: 'easeOut'
+            }}
+        >
+            <div className="mb-8 md:pt-0 pt-20">
                     <AddSongForm onSongAdded={handleSongAdded} />
             </div>
 
@@ -102,11 +110,17 @@ const SongListPage = () => {
                     </div>
                 ) : (      
                     songs.map((song) => (
-                        <Song key={song.id} song={song} analyzingId={analyzingId} handleAnalyze={handleAnalyze} formatDuration={formatDuration} />
+                        <Song 
+                            key={song.id} 
+                            song={song} 
+                            analyzingIds={analyzingIds} 
+                            handleAnalyze={handleAnalyze} 
+                            formatDuration={formatDuration}
+                        />
                     )
                 ))}
             </div>
-        </div>
+        </motion.div>
     )
 } 
 
