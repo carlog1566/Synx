@@ -153,10 +153,10 @@ const SongDetailPage = () => {
                 )}
 
                 {/* Audio Player */}
-                {song.audio_file && (
+                {song.audio_file_url && (
                     <AudioPlayer 
                         ref={audioPlayerRef} 
-                        audioUrl={song.audio_file} 
+                        audioUrl={song.audio_file_url} 
                         onTimeUpdate={setCurrentTime}
                     />
                 )}
