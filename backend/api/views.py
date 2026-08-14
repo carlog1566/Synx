@@ -9,6 +9,11 @@ from .models import Song
 from .serializers import SongSerializer
 from songs.chord_detector import ChordDetector
 from songs.tab_generator import TabGenerator
+from django.contrib.auth.models import User
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -58,6 +63,14 @@ class SongViewset(viewsets.ModelViewSet):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+    @action(detail=True, methods=['patch'])
+    def toggle_public(self, request, pk=None):
+        song = self.get_object()
+        song.is_public = not song.is_public
+        song.save()
+        return Response(self.get_serializer(song).data)
+
+
     # Defined to prepare for future auth
     def get_queryset(self):
         # return Song.objects.filter(owner=self.request.user) | Song.objects.filter(is_public=True)   # Uncomment when auth is implemented
@@ -68,3 +81,40 @@ class SongViewset(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # serializer.save(owner=self.request.user)    # Uncomment when auth is implemented
         serializer.save()
+
+
+class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        email = request.data.get('email', '')
+
+        if not username or not password:
+            return Response(
+                {'error': 'Username and password are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return Response(
+                {'error':list(e.messages)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {'error': 'Username already taken'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = User.objects.create_user(username=username, password=password, email = email)
+
+        return Response(
+            {'message': 'User created successfully', 'username': user.username},
+            status = status.HTTP_201_CREATED
+        )
+
