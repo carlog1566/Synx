@@ -14,12 +14,13 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
 class SongViewset(viewsets.ModelViewSet):
-    queryset = Song.objects.all()
     serializer_class = SongSerializer
+    permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=['post'])
     def analyze(self, request, pk=None):
@@ -71,16 +72,12 @@ class SongViewset(viewsets.ModelViewSet):
         return Response(self.get_serializer(song).data)
 
 
-    # Defined to prepare for future auth
     def get_queryset(self):
-        # return Song.objects.filter(owner=self.request.user) | Song.objects.filter(is_public=True)   # Uncomment when auth is implemented
-        return Song.objects.all()
+        return Song.objects.filter(owner=self.request.user) | Song.objects.filter(is_public=True)
 
 
-    # Defined to prepare for future auth
     def perform_create(self, serializer):
-        # serializer.save(owner=self.request.user)    # Uncomment when auth is implemented
-        serializer.save()
+        serializer.save(owner=self.request.user)
 
 
 class RegisterView(APIView):
