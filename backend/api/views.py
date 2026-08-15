@@ -1,5 +1,6 @@
 import tempfile
 import os
+from decouple import config
 from django.shortcuts import render
 from django.conf import settings
 from rest_framework import viewsets, status
@@ -15,6 +16,8 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 # Create your views here.
 
@@ -115,3 +118,33 @@ class RegisterView(APIView):
             status = status.HTTP_201_CREATED
         )
 
+
+class CookieTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        serializer = TokenObtainPairSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        access_token = serializer.validated_data['access']
+        refresh_token = serializer.validated_data['refresh']
+
+        response = Response({'message': 'Login Successful'})
+
+        response.set_cookie(
+            key='access_token',
+            value=str(access_token),
+            httponly=True,
+            secure=not config('DEBUG', default=True, cast=bool),
+            samesite='Lax',
+            max_age=3600
+        )
+
+        response.set_cookie(
+            key='refresh_token',
+            value=str(refresh_token),
+            httponly=True,
+            secure=not config('DEBUG', default=True, cast=bool),
+            samesite='Lax',
+            max_age=604800
+        )
+
+        return response
