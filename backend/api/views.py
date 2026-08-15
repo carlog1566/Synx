@@ -148,3 +148,25 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         )
 
         return response
+
+
+class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        response = Response({'message': 'Logged out successfully'})
+
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+
+        return response
+
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            'username': request.user.username,
+            'email': request.user.email
+        })
