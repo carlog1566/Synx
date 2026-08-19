@@ -38,6 +38,9 @@ const ChordStrip = () => {
         }
 
         const updateWidth = () => {
+            if (!containerRef.current) {
+                return
+            }
             setPanelWidth(containerRef.current.clientWidth)
         }
 

@@ -56,7 +56,7 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 
 					{/* Sign In/Up Buttons */}
 					<div className="hidden md:flex">
-						<Link to="/" className="group inline-block px-4 py-2 mx-1 border border-third rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
+						<Link to="/login" className="group inline-block px-4 py-2 mx-1 border border-third rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
 							<span className="text-lg">
 								Sign In
 							</span>
