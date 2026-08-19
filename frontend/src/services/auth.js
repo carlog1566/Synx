@@ -1,4 +1,4 @@
-import apiClient from './api'
+import { apiClient } from './api'
 
 export const authAPI = {
     register: async (username, password, email) => {
@@ -9,7 +9,11 @@ export const authAPI = {
         return await apiClient.post('/auth/login/', { username, password })
     },
 
+    me: async () => {
+        return await apiClient.get('/auth/me/')
+    },
+
     logout: async () => {
         return await apiClient.post('/auth/logout/')
-    }
-}
+    },
+}   
