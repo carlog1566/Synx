@@ -39,7 +39,7 @@ const LoginPage = () => {
                 }}
                 className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full"
             >
-                <h1 className="text-3xl font-bold text-gray-800 mb-6">
+                <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
                     Log In
                 </h1>
 
@@ -90,7 +90,15 @@ const LoginPage = () => {
                             </motion.span>
                         </AnimatePresence>
                     </motion.button>
-                    <GoogleLogin
+                </form>
+
+                <div className="flex items-center gap-3 my-6">
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <span className="text-gray-400 text-sm">or</span>
+                    <div className="flex-1 h-px bg-gray-200" />
+                </div>
+                 
+                <GoogleLogin
                         onSuccess={async (credentialResponse) => {
                             try {
                                 await googleLogin(credentialResponse.credential)
@@ -100,8 +108,10 @@ const LoginPage = () => {
                             }
                         }}
                         onError={() => setError('Google login failed')}
+                        shape="pill"
+                        size="large"
+                        text="continue_with"
                     />
-                </form>
 
                 <p className="mt-4 text-center text-gray-600">
                     Don't have an account? <Link to="/register" className="text-primary hover:text-third transition-colors duration-200">Sign up</Link>
