@@ -155,7 +155,7 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 									transition={{ duration: 0.25, delay: 0.1 }} 
 								> 
 									<Link 
-										to="/" 
+										to="/login" 
 										onClick={closeMenu} 
 										className="block px-4 py-3 rounded-xl text-primary font-bold border border-third text-center hover:bg-third hover:text-white transition-all duration-200" 
 									> 

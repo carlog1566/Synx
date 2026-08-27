@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Routes, Route } from 'react-router'
+import { Routes, Route, useLocation } from 'react-router'
 import { AuthProvider } from './context/AuthContext'
 import HomePage from './pages/HomePage'
 import SongListPage from './pages/SongListPage'
@@ -9,13 +9,16 @@ import LoginPage from './pages/LoginPage'
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
+  const isLogin = location.pathname === '/login'
+  const paddingClass =  (isLogin && menuOpen) ? 'pt-72 py-8' : menuOpen ? 'pt-88 py-8' : isLogin ? 'pt-0 py-0' : 'pt-16 md:py-36'
 
   return (
     <AuthProvider>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
         <Navbar menuOpen={menuOpen} setMenuOpen={setMenuOpen}/>
 
-        <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-[padding] duration-400 ease-in-out ${menuOpen ? 'pt-88' : 'pt-16 md:py-36'}`}>
+        <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-[padding] duration-400 ease-in-out ${paddingClass}`}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path='/songs' element={<SongListPage />} />
