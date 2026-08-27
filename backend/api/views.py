@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -111,7 +112,13 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        user = User.objects.create_user(username=username, password=password, email = email)
+        try:
+            user = User.objects.create_user(username=username, password=password, email=email)
+        except IntegrityError:
+            return Response(
+                {'error': 'An account with this email already exists'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(
             {'message': 'User created successfully', 'username': user.username},
