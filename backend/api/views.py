@@ -19,8 +19,13 @@ from django.db import IntegrityError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 # Create your views here.
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
+
 
 class SongViewset(viewsets.ModelViewSet):
     serializer_class = SongSerializer
@@ -112,6 +117,12 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {'error': 'An account with this email already exists'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             user = User.objects.create_user(username=username, password=password, email=email)
         except IntegrityError:
@@ -135,6 +146,73 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         refresh_token = serializer.validated_data['refresh']
 
         response = Response({'message': 'Login Successful'})
+
+        response.set_cookie(
+            key='access_token',
+            value=str(access_token),
+            httponly=True,
+            secure=not config('DEBUG', default=True, cast=bool),
+            samesite='Lax',
+            max_age=3600
+        )
+
+        response.set_cookie(
+            key='refresh_token',
+            value=str(refresh_token),
+            httponly=True,
+            secure=not config('DEBUG', default=True, cast=bool),
+            samesite='Lax',
+            max_age=604800
+        )
+
+        return response
+
+
+class GoogleLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        google_token = request.data.get('credential')
+
+        if not google_token:
+            return Response(
+                {'error': 'No crednetial provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            idinfo = id_token.verify_oauth2_token(google_token, google_requests.Request(), GOOGLE_CLIENT_ID)
+        except ValueError:
+            return Response(
+                {'error': 'Invalid Google toekn'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        email = idinfo.get('email')
+        email_verified = idinfo.get('email_verified')
+
+        if not email_verified:
+            return Response(
+                {'error': 'Google email not verified'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            user, created = User.objects.get_or_create(
+                email=email, 
+                defaults={'username': email}
+            )
+        except IntegrityError:
+            return Response(
+                {'error': 'Account conflict, please try again'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        refresh = RefreshToken.for_user(user)
+        access_token = refresh.access_token
+        refresh_token = refresh
+
+        response = Response({'message': 'Login successful'})
 
         response.set_cookie(
             key='access_token',
