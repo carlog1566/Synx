@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { GoogleLogin } from '@react-oauth/google'
 
 const LoginPage = () => {
     const [username, setUsername] = useState('')
@@ -9,7 +10,7 @@ const LoginPage = () => {
     const [error, setError] = useState(null)
     const [submitting, setSubmitting] = useState(false)
 
-    const { login } = useAuth()
+    const { login, googleLogin } = useAuth()
     const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
@@ -89,6 +90,17 @@ const LoginPage = () => {
                             </motion.span>
                         </AnimatePresence>
                     </motion.button>
+                    <GoogleLogin
+                        onSuccess={async (credentialResponse) => {
+                            try {
+                                await googleLogin(credentialResponse.credential)
+                                navigate('/songs')
+                            } catch (err) {
+                                setError('Google login failed')
+                            }
+                        }}
+                        onError={() => setError('Google login failed')}
+                    />
                 </form>
 
                 <p className="mt-4 text-center text-gray-600">
