@@ -256,6 +256,7 @@ Frontend runs at: `http://localhost:3000`
 * [x] Interactive tab player
 * [x] Deployment
 * [ ] User authentication (in progress)
+* [ ] Implement CI/CD pipelines(planned)
 * [ ] Song recommendations (planned)
 * [ ] Improve tab generation (planned)
 * [ ] Computer Vision Tracking?
