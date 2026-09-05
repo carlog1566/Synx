@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { authAPI } from '../services/auth'
+import Success from '../components/Success'
 
 const ResetPasswordPage = () => {    
     const { uid, token } = useParams()
@@ -40,12 +41,11 @@ const ResetPasswordPage = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
-                <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">Password reset!</h1>
-                    <Link to="/login" className="text-primary hover:text-third transition-colors duration-200">Log in with your new password</Link>
-                </div>
-            </div>
+            <Success 
+                title="Password reset!" 
+                text="Log in with your new password" 
+                path="/login" 
+            />
         )
     }
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { authAPI } from '../services/auth'
+import Success from '../components/Success'
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('')
@@ -12,6 +13,7 @@ const ForgotPasswordPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSubmitting(true)
+        setError(null)
         
         try {
             await authAPI.forgotPassword(email)
@@ -25,17 +27,12 @@ const ForgotPasswordPage = () => {
 
     if (submitted) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
-                <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">Check your email</h1>
-                    <p className="text-gray-600">
-                        If an account exists for that email, we've sent a password reset link.
-                    </p>
-                    <Link to="/login" className="mt-6 inline-block text-primary hover:text-third transition-colors duration-200">
-                        Back to login
-                    </Link>
-                </div>
-            </div>
+            <Success 
+                title="Check your email" 
+                subText="If an account exists for that email, we've sent a password reset link." 
+                text="Back to login" 
+                path="/login" 
+            />
         )
     }
 
@@ -92,7 +89,7 @@ const ForgotPasswordPage = () => {
                         </AnimatePresence>
                     </motion.button>
                 </form>
-                
+
                 <p className="mt-4 text-center text-gray-600">
                     <Link to="/login" className="text-primary hover:text-third transition-colors duration-200">Back to login</Link>
                 </p>
