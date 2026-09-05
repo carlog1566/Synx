@@ -7,7 +7,7 @@ const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('')
     const [submitting, setSubmitting] = useState(false)
     const [submitted, setSubmitted] = useState(false)
-    const [error, setError] = useState('')
+    const [error, setError] = useState(null)
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -16,12 +16,11 @@ const ForgotPasswordPage = () => {
         try {
             await authAPI.forgotPassword(email)
         } catch (err) {
-            setError('Reset Password Failed')
+            setError('Something went wrong. Please check your connection and try again.')
         } finally {
             setSubmitted(true)
+            setSubmitting(false)
         }
-
-        setSubmitting(false)
     }
 
     if (submitted) {
@@ -32,7 +31,7 @@ const ForgotPasswordPage = () => {
                     <p className="text-gray-600">
                         If an account exists for that email, we've sent a password reset link.
                     </p>
-                    <Link to="/login" className="text-purple-600 mt-6 inline-block">
+                    <Link to="/login" className="mt-6 inline-block text-primary hover:text-third transition-colors duration-200">
                         Back to login
                     </Link>
                 </div>
