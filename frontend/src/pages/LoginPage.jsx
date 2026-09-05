@@ -103,19 +103,19 @@ const LoginPage = () => {
                 </div>
                  
                 <GoogleLogin
-                        onSuccess={async (credentialResponse) => {
-                            try {
-                                await googleLogin(credentialResponse.credential)
-                                navigate('/songs')
-                            } catch (err) {
-                                setError('Google login failed')
-                            }
-                        }}
-                        onError={() => setError('Google login failed')}
-                        shape="pill"
-                        size="large"
-                        text="continue_with"
-                    />
+                    onSuccess={async (credentialResponse) => {
+                        try {
+                            await googleLogin(credentialResponse.credential)
+                            navigate('/songs')
+                        } catch (err) {
+                            setError('Google login failed')
+                        }
+                    }}
+                    onError={() => setError('Google login failed')}
+                    shape="pill"
+                    size="large"
+                    text="continue_with"
+                />
 
                 <p className="mt-4 text-center text-gray-600">
                     Don't have an account? <Link to="/register" className="text-primary hover:text-third transition-colors duration-200">Sign up</Link>
