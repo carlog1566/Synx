@@ -20,4 +20,12 @@ export const authAPI = {
     logout: async () => {
         return await apiClient.post('/auth/logout/')
     },
+
+    forgotPassword: async (email) => {
+        return await apiClient.post('/auth/forgot-password/', { email })
+    },
+
+    resetPassword: async (uid, token, newPassword) => {
+        return await apiClient.post('/auth/reset-password/', { uid, token, new_password: newPassword})
+    },
 }   
