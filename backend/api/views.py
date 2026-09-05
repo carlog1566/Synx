@@ -3,6 +3,7 @@ import os
 from decouple import config
 from django.shortcuts import render
 from django.conf import settings
+from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
@@ -134,6 +135,8 @@ class RegisterView(APIView):
                 {'error': 'An account with this email already exists'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        login(request, user)
 
         return Response(
             {'message': 'User created successfully', 'username': user.username},

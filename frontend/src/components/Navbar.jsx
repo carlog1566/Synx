@@ -61,7 +61,7 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 								Sign In
 							</span>
 						</Link>
-						<Link to="/" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold bg-third text-white transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105">
+						<Link to="/register" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold bg-third text-white transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105">
 							<span className="text-lg">
 								Sign Up
 							</span>
@@ -169,7 +169,7 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 									transition={{ duration: 0.25, delay: 0.15 }}
 								> 
 									<Link 
-										to="/" 
+										to="/register" 
 										onClick={closeMenu} 
 										className="block px-4 py-3 rounded-xl bg-third text-white font-bold text-center hover:shadow-lg hover:scale-[1.02] transition-all duration-200" 
 									> 
