@@ -7,13 +7,15 @@ import SongDetailPage from './pages/SongDetailPage'
 import Navbar from './components/Navbar'
 import LoginPage from './pages/LoginPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const isLogin = location.pathname === '/login'
   const forgotPassword = location.pathname === '/forgot-password'
-  const paddingClass =  ((isLogin || forgotPassword) && menuOpen) ? 'pt-72 py-8' : menuOpen ? 'pt-88 py-8' : (isLogin || forgotPassword) ? 'pt-0 py-0' : 'pt-16 md:py-36'
+  const resetPassword = location.pathname.startsWith('/reset-password/')
+  const paddingClass =  ((isLogin || forgotPassword || resetPassword) && menuOpen) ? 'pt-72 py-8' : menuOpen ? 'pt-88 py-8' : (isLogin || forgotPassword || resetPassword) ? 'pt-0 py-0' : 'pt-16 md:py-36'
 
   return (
     <AuthProvider>
@@ -27,6 +29,7 @@ function App() {
             <Route path='/songs/:id' element={<SongDetailPage />} />
             <Route path='/login' element={<LoginPage />} />
             <Route path='/forgot-password/' element={<ForgotPasswordPage />} />
+            <Route path='/reset-password/:uid/:token/' element={<ResetPasswordPage />} />
           </Routes>
         </main>
 
