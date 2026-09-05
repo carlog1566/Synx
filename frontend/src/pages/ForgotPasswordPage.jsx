@@ -15,10 +15,10 @@ const ForgotPasswordPage = () => {
         
         try {
             await authAPI.forgotPassword(email)
+            setSubmitted(true)
         } catch (err) {
             setError('Something went wrong. Please check your connection and try again.')
         } finally {
-            setSubmitted(true)
             setSubmitting(false)
         }
     }
@@ -51,6 +51,13 @@ const ForgotPasswordPage = () => {
                 className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full"
             >
                 <h1 className="text-center text-3xl font-bold text-gray-800 mb-6">Forgot Password</h1>
+                
+                {error && (
+                    <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <input
                         type="email"
@@ -85,6 +92,7 @@ const ForgotPasswordPage = () => {
                         </AnimatePresence>
                     </motion.button>
                 </form>
+                
                 <p className="mt-4 text-center text-gray-600">
                     <Link to="/login" className="text-primary hover:text-third transition-colors duration-200">Back to login</Link>
                 </p>
