@@ -22,6 +22,19 @@ const AuthProvider = ({ children }) => {
         checkAuth()
     }, [])
 
+    const register = async (username, password, email) => {
+        try {
+            await authAPI.register(username, password, email)
+            const response = await authAPI.me()
+            setUser(response.data)
+        } catch (err) {
+            setUser(null)
+            throw err
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const login = async (username, password) => {
         try {
             await authAPI.login(username, password)
@@ -60,7 +73,7 @@ const AuthProvider = ({ children }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, googleLogin, logout }}>
+        <AuthContext.Provider value={{ user, loading, register, login, googleLogin, logout }}>
             {children}
         </AuthContext.Provider>
     )

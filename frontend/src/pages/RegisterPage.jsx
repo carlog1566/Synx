@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
-import { authAPI } from '../services/auth'
 import { useAuth } from '../context/AuthContext'
 import { GoogleLogin } from '@react-oauth/google'
 
@@ -12,7 +11,7 @@ const RegisterPage = () => {
     const [error, setError] = useState(null)
     const [submitting, setSubmitting] = useState(false)
 
-    const { login, googleLogin } = useAuth()
+    const { register, googleLogin } = useAuth()
     const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
@@ -21,7 +20,7 @@ const RegisterPage = () => {
         setSubmitting(true)
 
         try {
-            await authAPI.register(username, password, email)
+            await register(username, password, email)
             navigate('/songs')
         } catch (err) {
             const backendError = err.response?.data?.error

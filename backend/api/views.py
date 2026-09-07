@@ -3,7 +3,6 @@ import os
 from decouple import config
 from django.shortcuts import render
 from django.conf import settings
-from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
@@ -136,12 +135,33 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        login(request, user)
+        refresh = RefreshToken.for_user(user)
+        access_token = refresh.access_token
 
-        return Response(
+        response = Response(
             {'message': 'User created successfully', 'username': user.username},
             status = status.HTTP_201_CREATED
         )
+
+        response.set_cookie(
+            key='access_token',
+            value=str(access_token),
+            httponly=True,
+            secure=not config('DEBUG', default=True, cast=bool),
+            samesite='Lax',
+            max_age=3600
+        )
+
+        response.set_cookie(
+            key='refresh_token',
+            value=str(refresh),
+            httponly=True,
+            secure=not config('DEBUG', default=True, cast=bool),
+            samesite='Lax',
+            max_age=604800
+        )
+
+        return response
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
