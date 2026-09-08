@@ -28,4 +28,19 @@ export const authAPI = {
     resetPassword: async (uid, token, newPassword) => {
         return await apiClient.post('/auth/reset-password/', { uid, token, new_password: newPassword})
     },
+
+    changePassword: async (currentPassword, newPassword) => {
+        return await apiClient.post('/auth/change-password/', {
+            current_password: currentPassword,
+            new_password: newPassword
+        })
+    },
+
+    deleteAccount: async (passwordd) => {
+        return await apiClient.post('/auth/delete-account/', { password })
+    },
+
+    getStats: async () => {
+        return await apiClient.get('/auth/stats/')
+    }
 }   
