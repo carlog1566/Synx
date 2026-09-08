@@ -356,6 +356,7 @@ class ChangePasswordView(APIView):
     def post(self, request):
         current_password = request.data.get('current_password')
         new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
 
         if not request.user.check_password(current_password):
             return Response(
@@ -368,6 +369,12 @@ class ChangePasswordView(APIView):
         except ValidationError as e:
             return Response(
                 {'error': list(e.messages)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if new_password != confirm_password:
+            return Response (
+                {'error': 'Passwords do not match'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
