@@ -62,7 +62,7 @@ const UserMenu = () => {
                         </Link>
                         <button
                             onClick={handleLogout}
-                            className="w-full text-left px-4 py-3 text-sm font-medium text-red-500 hover:bg-gray-50 transition-colors cursor-pointer"
+                            className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                             Sign Out
                         </button>

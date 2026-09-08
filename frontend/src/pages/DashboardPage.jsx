@@ -34,6 +34,16 @@ const DashboardPage = () => {
         fetchStats()
     }, [])
 
+    const handleLogout = async () => {
+        try {
+            await logout()
+        } catch (err) {
+
+        } finally {
+            navigate('/')
+        }
+    }
+
     const handleChangePassword = async (e) => {
         e.preventDefault()
         setPasswordError(null)
@@ -106,6 +116,15 @@ const DashboardPage = () => {
                     <p><span className="font-medium text-gray-800">Username:</span> {user.username}</p>
                     <p><span className="font-medium text-gray-800">Email:</span> {user.email}</p>
                 </div>
+                <motion.button
+                    onClick={handleLogout}
+                    className="border-1 border-red-600 text-red-600 font-medium mt-3 py-2 px-6 rounded-lg cursor-pointer transition"
+                    whileHover={{ backgroundColor: 'rgb(220, 38, 38)', color: 'white'}}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                >
+                    Sign Out
+                </motion.button>
             </div>
 
             {/* Change Password Section */}
