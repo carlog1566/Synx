@@ -54,7 +54,7 @@ const UserMenu = () => {
                             Logged In: {user.username}
                         </div>
                         <Link
-                            to="/songs"
+                            to="/dashboard"
                             onClick={() => setOpen(false)}
                             className="block px-4 py-3 text-sm font-medium text-primary hover:bg-gray-50 transition-colors"
                         >
