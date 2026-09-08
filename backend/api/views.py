@@ -280,7 +280,8 @@ class MeView(APIView):
     def get(self, request):
         return Response({
             'username': request.user.username,
-            'email': request.user.email
+            'email': request.user.email,
+            'date_joined': request.user.date_joined,
         })
 
 
@@ -347,3 +348,66 @@ class ResetPasswordConfirmView(APIView):
         user.save()
 
         return Response({'message': 'Password reset successfully'})
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+
+        if not request.user.check_password(current_password):
+            return Response(
+                {'error': 'Current password is incorrect.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            validate_password(new_password)
+        except ValidationError as e:
+            return Response(
+                {'error': list(e.messages)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        request.user.set_password(new_password)
+        request.user.save()
+
+        return Response({'message': 'Password changed successfully'})
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        password = request.data.get('password')
+
+        if not user.check_password(password):
+            return Response(
+                {'error': 'Incorrect password'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        user.delete()
+
+        response = Response({'message': 'Account deleted successfully'})
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+
+        return response
+
+
+
+class SongStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total_songs = Song.objects.filter(owner=self.request.user).count()
+        analyzed_songs = Song.objects.filter(owner=self.request.user, analyzed=True).count()
+
+        return Response({
+            'total_songs': total_songs,
+            'analyzed_songs': analyzed_songs,
+        })
