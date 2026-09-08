@@ -29,7 +29,7 @@ const LoginPage = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="min-h-screen md:pt-0 pt-20 flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
             <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
