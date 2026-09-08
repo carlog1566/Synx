@@ -1,8 +1,15 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router'
+import UserMenu from './UserMenu'
 
 const Navbar = ({ menuOpen, setMenuOpen}) => {
+	const [error, setError] = useState(null)
+	const { user, logout } = useAuth()
+	const navigate = useNavigate()
 
 	useEffect(() => {
         const mediaQuery = window.matchMedia('(min-width: 768px)')
@@ -19,6 +26,16 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
             mediaQuery.removeEventListener('change', handleChange)
         }
     }, [])
+
+	const handleLogout = async () => {
+		try {
+			await logout()
+		} catch (err) {
+			setError('Something went wrong. Please try again.')
+		} finally {
+			navigate('/')
+		}
+	}
 
   	const closeMenu = () => { 
 		setMenuOpen(false) 
@@ -40,8 +57,8 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 						</p>
 					</div>
 
-					{/* Navigation Buttons */}
-					<div className="mr-10 hidden md:flex">
+					{/* Desktop View - Navigation Buttons */}
+					<div className={`hidden md:flex ${user ? 'mr-52' : 'mr-10'}`}>
 						<Link to="/" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
 							<span className="text-lg">
 								Home
@@ -54,21 +71,27 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 						</Link>
 					</div>
 
-					{/* Sign In/Up Buttons */}
+					{/* Desktop View - Sign In/Up Buttons & User Menu */}
 					<div className="hidden md:flex">
-						<Link to="/login" className="group inline-block px-4 py-2 mx-1 border border-third rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
-							<span className="text-lg">
-								Sign In
-							</span>
-						</Link>
-						<Link to="/register" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold bg-third text-white transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105">
-							<span className="text-lg">
-								Sign Up
-							</span>
-						</Link>
+						{user ? (
+							<UserMenu />
+						) : (
+							<>
+								<Link to="/login" className="group inline-block px-4 py-2 mx-1 border border-third rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
+									<span className="text-lg">
+										Sign In
+									</span>
+								</Link>
+								<Link to="/register" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold bg-third text-white transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105">
+									<span className="text-lg">
+										Sign Up
+									</span>
+								</Link>
+							</>
+						)}
 					</div>
 
-					{/* Mobile Waffle Button */} 
+					{/* Mobile View - Waffle Button */} 
 					<motion.button 
 						whileTap={{ scale: 0.9 }} 
 						whileHover={{ scale: 1.05 }} 
@@ -97,6 +120,7 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 					</motion.button> 
 				</div>
 
+				{/* Mobile View - Menu */}
 				<AnimatePresence> 
 					{menuOpen && ( 
 						<motion.div 
