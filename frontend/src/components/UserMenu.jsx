@@ -6,7 +6,6 @@ import { FiUser } from "react-icons/fi";
 
 const UserMenu = () => {
     const [open, setOpen] = useState(false)
-    const [error, setError] = useState(null)
     const menuRef = useRef(null)
     const { user, logout } = useAuth()
     const navigate = useNavigate()
@@ -27,7 +26,7 @@ const UserMenu = () => {
         try {
             await logout()
         } catch (err) {
-            setError('Something went wrong. Please try again later.')
+
         } finally {
             navigate('/')
         }
