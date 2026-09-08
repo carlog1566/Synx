@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router'
 import UserMenu from './UserMenu'
 
 const Navbar = ({ menuOpen, setMenuOpen}) => {
-	const [error, setError] = useState(null)
 	const { user, logout } = useAuth()
 	const navigate = useNavigate()
 
@@ -31,7 +30,7 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 		try {
 			await logout()
 		} catch (err) {
-			setError('Something went wrong. Please try again.')
+
 		} finally {
 			navigate('/')
 		}
@@ -172,34 +171,76 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 									className="h-px bg-gray-200 my-2" 
 								/> 
 								
-								{/* Sign In */} 
-								<motion.div 
-									variants={{ closed: { opacity: 0, x: -20 }, 
-									open: { opacity: 1, x: 0 } }} 
-									transition={{ duration: 0.25, delay: 0.1 }} 
-								> 
-									<Link 
-										to="/login" 
-										onClick={closeMenu} 
-										className="block px-4 py-3 rounded-xl text-primary font-bold border border-third text-center hover:bg-third hover:text-white transition-all duration-200" 
-									> 
-										Sign In 
-									</Link> 
-								</motion.div> 
+								{user ? (
+									<>
+										{/* Logged in as */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.1 }} 
+											className="px-4 py-3 font-bold text-gray-500"
+										> 
+											Logged in: {user.username}
+										</motion.div>
+
+										{/* Dashboard */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.15 }} 
+										> 
+											<Link 
+												to="/dashboard" 
+												onClick={closeMenu} 
+												className="block px-4 py-3 rounded-xl text-primary font-bold hover:bg-third hover:text-white hover:translate-x-1 transition-all duration-200" 
+											> 
+												Dashboard 
+											</Link> 
+										</motion.div>
+
+										{/* Logout */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.2 }} 
+										> 
+											<button
+												onClick={() => { handleLogout(); closeMenu(); }}
+												className="w-full block px-4 py-3 rounded-xl text-primary font-bold border border-third text-center hover:bg-third hover:text-white transition-all duration-200 cursor-pointer" 
+											> 
+												Logout 
+											</button> 
+										</motion.div>
+									</>
+								) : (
+									<>
+										{/* Sign In */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.1 }} 
+										> 
+											<Link 
+												to="/login" 
+												onClick={closeMenu} 
+												className="block px-4 py-3 rounded-xl text-primary font-bold border border-third text-center hover:bg-third hover:text-white transition-all duration-200" 
+											> 
+												Sign In 
+											</Link> 
+										</motion.div> 
+										
+										{/* Sign Up */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.15 }}
+										> 
+											<Link 
+												to="/register" 
+												onClick={closeMenu} 
+												className="block px-4 py-3 rounded-xl bg-third text-white font-bold text-center hover:shadow-lg hover:scale-[1.02] transition-all duration-200" 
+											> 
+												Sign Up 
+											</Link> 
+										</motion.div>
+									</>
+								)}
 								
-								{/* Sign Up */} 
-								<motion.div 
-									variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
-									transition={{ duration: 0.25, delay: 0.15 }}
-								> 
-									<Link 
-										to="/register" 
-										onClick={closeMenu} 
-										className="block px-4 py-3 rounded-xl bg-third text-white font-bold text-center hover:shadow-lg hover:scale-[1.02] transition-all duration-200" 
-									> 
-										Sign Up 
-									</Link> 
-								</motion.div> 
 							</motion.div> 
 						</motion.div> 
 					)} 
