@@ -205,3 +205,19 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@synx.app'
 
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+
+# Email
+RESEND_ENABLED = config('USE_RESEND', default=False, cast=bool)
+
+if RESEND_ENABLED:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.resend.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'resend'
+    EMAIL_HOST_PASSWORD = config('RESEND_API_KEY')
+    DEFAULT_FROM_EMAIL = 'noreply@synx.studio'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@synx.app'
