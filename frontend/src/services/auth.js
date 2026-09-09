@@ -33,8 +33,8 @@ export const authAPI = {
         return await apiClient.post('/auth/change-password/', { current_password: currentPassword, new_password: newPassword, confirm_password: confirmPassword }) 
     },
 
-    deleteAccount: async (password) => {
-        return await apiClient.post('/auth/delete-account/', { password })
+    deleteAccount: async (password, confirmation) => {
+        return await apiClient.post('/auth/delete-account/', { password, confirmation })
     },
 
     getStats: async () => {

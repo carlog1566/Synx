@@ -15,6 +15,7 @@ const DashboardPage = () => {
     const [changingPassword, setChangingPassword] = useState(false)
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [deleteConfirmation, setDeleteConfirmation] = useState('')
     const [deletePassword, setDeletePassword] = useState('')
     const [deleteError, setDeleteError] = useState(null)
     const [deleting, setDeleting] = useState(false)
@@ -73,7 +74,7 @@ const DashboardPage = () => {
         setDeleting(true)
 
         try {
-            await authAPI.deleteAccount(deletePassword)
+            await authAPI.deleteAccount(deletePassword, deleteConfirmation)
             navigate('/')
         } catch (err) {
             const backendError = err.response?.data?.error
@@ -129,7 +130,9 @@ const DashboardPage = () => {
 
             {/* Change Password Section */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Change Password</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    {user.has_password ? 'Change Password' : 'Set Password'}
+                </h2>
 
                 {passwordError && (
                     <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
@@ -144,19 +147,24 @@ const DashboardPage = () => {
                 )}
                 {passwordSuccess && (
                     <div className="bg-green-50 text-green-600 p-3 rounded-lg mb-4">
-                        Password changed successfully!
+                        {user.has_password
+                            ? 'Password changed successfully!'
+                            : 'Password created successfully!'
+                        }
                     </div>
                 )}
 
                 <form onSubmit={handleChangePassword} className="space-y-4">
-                    <input
-                        type="password"
-                        placeholder="Current password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        disabled={changingPassword}
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-600 focus:outline-none"
-                    />
+                    {user.has_password && (
+                        <input
+                            type="password"
+                            placeholder="Current password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            disabled={changingPassword}
+                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-600 focus:outline-none"
+                        />
+                    )}
                     <input
                         type="password"
                         placeholder="New password"
@@ -194,7 +202,11 @@ const DashboardPage = () => {
                                 transition={{ duration: 0.15 }}
                                 className="inline-block"
                             >
-                                {changingPassword ? 'Changing...' : 'Change Password'}
+                                {changingPassword ? (
+                                    user.has_password ? 'Changing...' : 'Setting...'
+                                ) : (
+                                    user.has_password ? 'Change Password' : 'Set Password'
+                                )}
                             </motion.span>
                         </AnimatePresence>
                     </motion.button>
@@ -255,19 +267,36 @@ const DashboardPage = () => {
                             </div>
                         )}
 
-                        <input
-                            type="password"
-                            placeholder="Enter your password to confirm"
-                            value={deletePassword}
-                            onChange={(e) => setDeletePassword(e.target.value)}
-                            disabled={deleting}
-                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-red-500 focus:outline-none"
-                        />
+                        {user.has_password ? (
+                            <input
+                                type="password"
+                                placeholder="Enter your password to confirm"
+                                value={deletePassword}
+                                onChange={(e) => setDeletePassword(e.target.value)}
+                                disabled={deleting}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-red-500 focus:outline-none"
+                            />
+                        ) : (
+                            <div className="space-y-2">
+                                <p className="text-sm text-gray-600">
+                                    Type <span className="font-bold text-red-600">DELETE</span> to confirm.
+                                </p>
+
+                                <input
+                                    type="text"
+                                    placeholder="DELETE"
+                                    value={deleteConfirmation}
+                                    onChange={(e) => setDeleteConfirmation(e.target.value)}
+                                    disabled={deleting}
+                                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-red-500 focus:outline-none"
+                                />
+                            </div>
+                        )}
 
                         <div className="flex gap-3">
                             <motion.button
                                 onClick={handleDeleteAccount}
-                                disabled={deleting || !deletePassword}
+                                disabled={ deleting || (user.has_password ? !deletePassword : deleteConfirmation !== 'DELETE') }
                                 className="bg-red-600 text-white font-medium py-2 px-6 rounded-lg hover:bg-red-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                 whileHover={{ scale: 1.02, boxShadow: '0px 8px 20px rgba(0,0,0,0.2)' }}
                                 whileTap={{ scale: 0.98 }}
@@ -276,7 +305,12 @@ const DashboardPage = () => {
                                 {deleting ? 'Deleting...' : 'Permanently Delete'}
                             </motion.button>
                             <motion.button
-                                onClick={() => { setShowDeleteConfirm(false); setDeletePassword(''); setDeleteError(null); }}
+                                onClick={() => {
+                                    setShowDeleteConfirm(false)
+                                    setDeletePassword('')
+                                    setDeleteConfirmation('')
+                                    setDeleteError(null)
+                                }}
                                 disabled={deleting}
                                 className="bg-gray-200 text-gray-700 font-medium py-2 px-6 rounded-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                 whileHover={{ scale: 1.02, boxShadow: '0px 8px 20px rgba(0,0,0,0.2)' }}

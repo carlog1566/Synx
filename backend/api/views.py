@@ -136,8 +136,8 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        refresh = RefreshToken.for_user(user)
-        access_token = refresh.access_token
+        refresh_token = RefreshToken.for_user(user)
+        access_token = refresh_token.access_token
 
         response = Response(
             {'message': 'User created successfully', 'username': user.username},
@@ -193,20 +193,44 @@ class GoogleLoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            user, created = User.objects.get_or_create(
-                email=email, 
-                defaults={'username': email}
-            )
-        except IntegrityError:
-            return Response(
-                {'error': 'Account conflict, please try again'},
-                status=status.HTTP_400_BAD_REQUEST
+        user = User.objects.filter(email__iexact=email).first()
+
+        if not user:
+            base_username = email.split('@')[0]
+            username = base_username
+            counter = 1
+
+            while User.objects.filter(username=username).exists():
+                username = f'{base_username}{counter}'
+                counter += 1
+
+            user = User(
+                username=username,
+                email=email
             )
 
-        refresh = RefreshToken.for_user(user)
-        access_token = refresh.access_token
-        refresh_token = refresh
+            user.set_unusable_password()
+            user.save()
+
+        elif user.username == user.email and (user.password == '' or not user.has_usable_password()):
+            base_username = email.split('@')[0]
+            username = base_username
+            counter = 1
+
+            while (
+                User.objects.filter(username=username)
+                .exclude(pk=user.pk)
+                .exists()
+            ):
+                username = f'{base_username}{counter}'
+                counter += 1
+
+            user.username = username
+            user.set_unusable_password()
+            user.save()
+
+        refresh_token = RefreshToken.for_user(user)
+        access_token = refresh_token.access_token
 
         response = Response({'message': 'Login successful'})
 
@@ -235,6 +259,7 @@ class MeView(APIView):
             'username': request.user.username,
             'email': request.user.email,
             'date_joined': request.user.date_joined,
+            'has_password': request.user.has_usable_password(),
         })
 
 
@@ -307,34 +332,52 @@ class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        user = request.user
+
         current_password = request.data.get('current_password')
         new_password = request.data.get('new_password')
         confirm_password = request.data.get('confirm_password')
 
-        if not request.user.check_password(current_password):
+        had_password = user.has_usable_password()
+
+        if had_password:
+            if not current_password:
+                return Response(
+                    {'error': 'Current password is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if not user.check_password(current_password):
+                return Response(
+                    {'error': 'Current password is incorrect'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        if new_password != confirm_password:
             return Response(
-                {'error': 'Current password is incorrect.'},
+                {'error': 'Passwords do not match'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
-            validate_password(new_password)
+            validate_password(new_password, user=user)
         except ValidationError as e:
             return Response(
                 {'error': list(e.messages)},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if new_password != confirm_password:
-            return Response (
-                {'error': 'Passwords do not match'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        request.user.set_password(new_password)
-        request.user.save()
+        user.set_password(new_password)
+        user.save()
 
-        return Response({'message': 'Password changed successfully'})
+        if had_password:
+            message = 'Password changed successfully'
+        else:
+            message = 'Password created successfully'
+
+        return Response({
+            'message': message
+        })
 
 
 class DeleteAccountView(APIView):
@@ -342,17 +385,37 @@ class DeleteAccountView(APIView):
 
     def post(self, request):
         user = request.user
-        password = request.data.get('password')
 
-        if not user.check_password(password):
-            return Response(
-                {'error': 'Incorrect password'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-            
+        if user.has_usable_password():
+            password = request.data.get('password')
+
+            if not password:
+                return Response(
+                    {'error': 'Password is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if not user.check_password(password):
+                return Response(
+                    {'error': 'Incorrect password'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        else:
+            confirmation = request.data.get('confirmation')
+
+            if confirmation != 'DELETE':
+                return Response(
+                    {'error': 'Type DELETE to confirm account deletion'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         user.delete()
 
-        response = Response({'message': 'Account deleted successfully'})
+        response = Response({
+            'message': 'Account deleted successfully'
+        })
+
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
 
