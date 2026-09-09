@@ -116,7 +116,6 @@ const LoginPage = () => {
                             }
                         }}
                         onError={() => setError('Google login failed')}
-                        type="standard"
                         shape="pill"
                         size="large"
                         text="continue_with"

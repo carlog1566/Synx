@@ -61,6 +61,10 @@ const AuthProvider = ({ children }) => {
         }
     }
 
+    const clearUser = () => {
+        setUser(null)
+    }
+
     const logout = async () => {
         try {
             await authAPI.logout()
@@ -73,7 +77,7 @@ const AuthProvider = ({ children }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ user, loading, register, login, googleLogin, logout }}>
+        <AuthContext.Provider value={{ user, loading, register, login, googleLogin, clearUser, logout }}>
             {children}
         </AuthContext.Provider>
     )

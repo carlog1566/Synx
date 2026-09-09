@@ -20,7 +20,7 @@ const DashboardPage = () => {
     const [deleteError, setDeleteError] = useState(null)
     const [deleting, setDeleting] = useState(false)
 
-    const { user, logout } = useAuth()
+    const { user, clearUser, logout } = useAuth()
     const navigate = useNavigate()
 
     useEffect (() => {
@@ -75,6 +75,7 @@ const DashboardPage = () => {
 
         try {
             await authAPI.deleteAccount(deletePassword, deleteConfirmation)
+            clearUser()
             navigate('/')
         } catch (err) {
             const backendError = err.response?.data?.error
