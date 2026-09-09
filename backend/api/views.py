@@ -26,6 +26,7 @@ from songs.chord_detector import ChordDetector
 from songs.tab_generator import TabGenerator
 from .models import Song
 from .serializers import SongSerializer
+from .utils import set_auth_cookies
 
 # Create your views here.
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
@@ -143,23 +144,7 @@ class RegisterView(APIView):
             status = status.HTTP_201_CREATED
         )
 
-        response.set_cookie(
-            key='access_token',
-            value=str(access_token),
-            httponly=True,
-            secure=not config('DEBUG', default=True, cast=bool),
-            samesite='Lax',
-            max_age=3600
-        )
-
-        response.set_cookie(
-            key='refresh_token',
-            value=str(refresh),
-            httponly=True,
-            secure=not config('DEBUG', default=True, cast=bool),
-            samesite='Lax',
-            max_age=604800
-        )
+        set_auth_cookies(response, access_token, refresh_token)
 
         return response
 
@@ -174,23 +159,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
         response = Response({'message': 'Login Successful'})
 
-        response.set_cookie(
-            key='access_token',
-            value=str(access_token),
-            httponly=True,
-            secure=not config('DEBUG', default=True, cast=bool),
-            samesite='Lax',
-            max_age=3600
-        )
-
-        response.set_cookie(
-            key='refresh_token',
-            value=str(refresh_token),
-            httponly=True,
-            secure=not config('DEBUG', default=True, cast=bool),
-            samesite='Lax',
-            max_age=604800
-        )
+        set_auth_cookies(response, access_token, refresh_token)
 
         return response
 
@@ -241,23 +210,7 @@ class GoogleLoginView(APIView):
 
         response = Response({'message': 'Login successful'})
 
-        response.set_cookie(
-            key='access_token',
-            value=str(access_token),
-            httponly=True,
-            secure=not config('DEBUG', default=True, cast=bool),
-            samesite='Lax',
-            max_age=3600
-        )
-
-        response.set_cookie(
-            key='refresh_token',
-            value=str(refresh_token),
-            httponly=True,
-            secure=not config('DEBUG', default=True, cast=bool),
-            samesite='Lax',
-            max_age=604800
-        )
+        set_auth_cookies(response, access_token, refresh_token)
 
         return response
 
