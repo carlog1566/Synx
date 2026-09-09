@@ -118,6 +118,8 @@ const LoginPage = () => {
                     shape="pill"
                     size="large"
                     text="continue_with"
+                    useOneTap={false}
+                    auto_select={false}
                 />
 
                 <p className="mt-4 text-center text-gray-600">
