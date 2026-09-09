@@ -1,5 +1,6 @@
 import tempfile
 import os
+import resend
 from decouple import config
 from django.shortcuts import render
 from django.conf import settings
@@ -8,7 +9,6 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
-from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from rest_framework import viewsets, status
@@ -30,6 +30,7 @@ from .utils import set_auth_cookies
 
 # Create your views here.
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
+resend.api_key = config('RESEND_API_KEY')
 
 
 class SongViewset(viewsets.ModelViewSet):
@@ -270,22 +271,39 @@ class ForgotPasswordView(APIView):
         email = request.data.get('email')
 
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email__iexact=email)
 
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
 
             reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
 
-            send_mail(
-                subject='Reset your Synx password',
-                message=f'Click here to reset your password: {reset_link}',
-                from_email=None,
-                recipient_list=[email],
-            )
+            resend.Emails.send({
+                "from": "Synx <noreply@synx.studio>",
+                "to": [user.email],
+                "subject": "Reset your Synx password",
+                "html": f"""
+                    <h2>Reset your Synx password</h2>
+                    <p>We received a request to reset your password.</p>
+                    <p>
+                        <a href="{reset_link}">
+                            Reset Password
+                        </a>
+                    </p>
+                    <p>If you didn't request this, you can ignore this email.</p>
+                """
+            })
 
         except User.DoesNotExist:
             pass
+
+        except Exception as e:
+            print("RESEND ERROR:", repr(e))
+
+            return Response(
+                {'error': 'Failed to send reset email'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         return Response({'message': 'If that email exists, a reset link has been sent.'})
 
