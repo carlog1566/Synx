@@ -56,7 +56,7 @@ const HomePage = () => {
     return (
         <div className="mb-8">
             {/* Hero Section */}
-            <section className="relative overflow-hidden rounded-3xl py-16 md:py-24 md:pb-36">
+            <section className="relative overflow-hidden rounded-3xl md:py-12 md:pb-36">
                 <div className="container mx-auto px-6 md:px-4 grid md:grid-cols-2 gap-10 items-center">
 
                     {/* Brand & CTA Buttons */}

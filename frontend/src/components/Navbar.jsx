@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router'
 import UserMenu from './UserMenu'
 
-const Navbar = ({ menuOpen, setMenuOpen}) => {
+const Navbar = ({ menuOpen, setMenuOpen, navRef }) => {
 	const { user, logout } = useAuth()
 	const navigate = useNavigate()
 
@@ -41,7 +41,7 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 	}
 
 	return (
-		<header className="fixed w-full z-50 bg-white/70 backdrop-blur shadow-sm border-b border-gray-200 top-0 left-0">
+		<header ref={navRef} className="fixed w-full z-50 bg-white/70 backdrop-blur shadow-sm border-b border-gray-200 top-0 left-0">
 			<div className=" px-4 sm:px-6 lg:px-8 py-6">
 				<div className="flex items-center justify-between">
 					{/* Name */}

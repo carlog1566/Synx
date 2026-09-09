@@ -105,7 +105,7 @@ const DashboardPage = () => {
                 duration: 0.4,
                 ease: 'easeOut'
             }}
-            className="max-w-2xl mx-auto mb-8 md:pt-0 pt-20 space-y-8"
+            className="max-w-2xl mx-auto mb-8 space-y-8"
         >
             <h1 className="text-3xl font-bold text-gray-800">Your Account</h1>
 

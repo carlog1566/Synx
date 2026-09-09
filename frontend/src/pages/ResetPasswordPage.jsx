@@ -50,7 +50,10 @@ const ResetPasswordPage = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+        <div 
+            className="flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50"
+            style={{ minHeight: 'calc(100vh - var(--nav-height))' }}
+        >
             <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
