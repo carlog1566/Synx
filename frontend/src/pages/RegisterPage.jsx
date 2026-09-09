@@ -119,22 +119,25 @@ const RegisterPage = () => {
                     <div className="flex-1 h-px bg-gray-200" />
                 </div>
 
-                <GoogleLogin
-                    onSuccess={async (credentialResponse) => {
-                        try {
-                            await googleLogin(credentialResponse.credential)
-                            navigate('/songs')
-                        } catch (err) {
-                            setError('Google login failed')
-                        }
-                    }}
-                    onError={() => setError('Google login failed')}
-                    shape="pill"
-                    size="large"
-                    text="continue_with"
-                    useOneTap={false}
-                    auto_select={false}
-                />
+                <div className="flex justify-center">
+                    <GoogleLogin
+                        onSuccess={async (credentialResponse) => {
+                            try {
+                                await googleLogin(credentialResponse.credential)
+                                navigate('/songs')
+                            } catch (err) {
+                                setError('Google login failed')
+                            }
+                        }}
+                        onError={() => setError('Google login failed')}
+                        type="standard"
+                        shape="pill"
+                        size="large"
+                        text="continue_with"
+                        useOneTap={false}
+                        auto_select={false}
+                    />
+                </div>
 
                 <p className="mt-4 text-center text-gray-600">
                     Already have an account? <Link to="/login" className="text-primary hover:text-third transition-colors duration-200">Log in</Link>
