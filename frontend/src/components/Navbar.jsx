@@ -1,8 +1,14 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router'
+import UserMenu from './UserMenu'
 
-const Navbar = ({ menuOpen, setMenuOpen}) => {
+const Navbar = ({ menuOpen, setMenuOpen, navRef }) => {
+	const { user, logout } = useAuth()
+	const navigate = useNavigate()
 
 	useEffect(() => {
         const mediaQuery = window.matchMedia('(min-width: 768px)')
@@ -20,12 +26,22 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
         }
     }, [])
 
+	const handleLogout = async () => {
+		try {
+			await logout()
+		} catch (err) {
+
+		} finally {
+			navigate('/')
+		}
+	}
+
   	const closeMenu = () => { 
 		setMenuOpen(false) 
 	}
 
 	return (
-		<header className="fixed w-full z-50 bg-white/70 backdrop-blur shadow-sm border-b border-gray-200 top-0 left-0">
+		<header ref={navRef} className="fixed w-full z-50 bg-white/70 backdrop-blur shadow-sm border-b border-gray-200 top-0 left-0">
 			<div className=" px-4 sm:px-6 lg:px-8 py-6">
 				<div className="flex items-center justify-between">
 					{/* Name */}
@@ -40,8 +56,8 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 						</p>
 					</div>
 
-					{/* Navigation Buttons */}
-					<div className="mr-10 hidden md:flex">
+					{/* Desktop View - Navigation Buttons */}
+					<div className={`hidden md:flex ${user ? 'mr-52' : 'mr-10'}`}>
 						<Link to="/" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
 							<span className="text-lg">
 								Home
@@ -54,21 +70,27 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 						</Link>
 					</div>
 
-					{/* Sign In/Up Buttons */}
+					{/* Desktop View - Sign In/Up Buttons & User Menu */}
 					<div className="hidden md:flex">
-						<Link to="/" className="group inline-block px-4 py-2 mx-1 border border-third rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
-							<span className="text-lg">
-								Sign In
-							</span>
-						</Link>
-						<Link to="/" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold bg-third text-white transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105">
-							<span className="text-lg">
-								Sign Up
-							</span>
-						</Link>
+						{user ? (
+							<UserMenu />
+						) : (
+							<>
+								<Link to="/login" className="group inline-block px-4 py-2 mx-1 border border-third rounded-full text-sm font-bold text-primary transition-all duration-300 ease-in-out hover:bg-third hover:text-white">
+									<span className="text-lg">
+										Sign In
+									</span>
+								</Link>
+								<Link to="/register" className="group inline-block px-4 py-2 mx-1 rounded-full text-sm font-bold bg-third text-white transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105">
+									<span className="text-lg">
+										Sign Up
+									</span>
+								</Link>
+							</>
+						)}
 					</div>
 
-					{/* Mobile Waffle Button */} 
+					{/* Mobile View - Waffle Button */} 
 					<motion.button 
 						whileTap={{ scale: 0.9 }} 
 						whileHover={{ scale: 1.05 }} 
@@ -97,6 +119,7 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 					</motion.button> 
 				</div>
 
+				{/* Mobile View - Menu */}
 				<AnimatePresence> 
 					{menuOpen && ( 
 						<motion.div 
@@ -148,34 +171,76 @@ const Navbar = ({ menuOpen, setMenuOpen}) => {
 									className="h-px bg-gray-200 my-2" 
 								/> 
 								
-								{/* Sign In */} 
-								<motion.div 
-									variants={{ closed: { opacity: 0, x: -20 }, 
-									open: { opacity: 1, x: 0 } }} 
-									transition={{ duration: 0.25, delay: 0.1 }} 
-								> 
-									<Link 
-										to="/" 
-										onClick={closeMenu} 
-										className="block px-4 py-3 rounded-xl text-primary font-bold border border-third text-center hover:bg-third hover:text-white transition-all duration-200" 
-									> 
-										Sign In 
-									</Link> 
-								</motion.div> 
+								{user ? (
+									<>
+										{/* Logged in as */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.1 }} 
+											className="px-4 py-3 font-bold text-gray-500"
+										> 
+											Logged in: {user.username}
+										</motion.div>
+
+										{/* Dashboard */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.15 }} 
+										> 
+											<Link 
+												to="/dashboard" 
+												onClick={closeMenu} 
+												className="block px-4 py-3 rounded-xl text-primary font-bold hover:bg-third hover:text-white hover:translate-x-1 transition-all duration-200" 
+											> 
+												Dashboard 
+											</Link> 
+										</motion.div>
+
+										{/* Logout */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.2 }} 
+										> 
+											<button
+												onClick={() => { handleLogout(); closeMenu(); }}
+												className="w-full block px-4 py-3 rounded-xl text-primary font-bold border border-third text-center hover:bg-third hover:text-white transition-all duration-200 cursor-pointer" 
+											> 
+												Logout 
+											</button> 
+										</motion.div>
+									</>
+								) : (
+									<>
+										{/* Sign In */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.1 }} 
+										> 
+											<Link 
+												to="/login" 
+												onClick={closeMenu} 
+												className="block px-4 py-3 rounded-xl text-primary font-bold border border-third text-center hover:bg-third hover:text-white transition-all duration-200" 
+											> 
+												Sign In 
+											</Link> 
+										</motion.div> 
+										
+										{/* Sign Up */}
+										<motion.div 
+											variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
+											transition={{ duration: 0.25, delay: 0.15 }}
+										> 
+											<Link 
+												to="/register" 
+												onClick={closeMenu} 
+												className="block px-4 py-3 rounded-xl bg-third text-white font-bold text-center hover:shadow-lg hover:scale-[1.02] transition-all duration-200" 
+											> 
+												Sign Up 
+											</Link> 
+										</motion.div>
+									</>
+								)}
 								
-								{/* Sign Up */} 
-								<motion.div 
-									variants={{ closed: { opacity: 0, x: -20 }, open: { opacity: 1, x: 0 } }} 
-									transition={{ duration: 0.25, delay: 0.15 }}
-								> 
-									<Link 
-										to="/" 
-										onClick={closeMenu} 
-										className="block px-4 py-3 rounded-xl bg-third text-white font-bold text-center hover:shadow-lg hover:scale-[1.02] transition-all duration-200" 
-									> 
-										Sign Up 
-									</Link> 
-								</motion.div> 
 							</motion.div> 
 						</motion.div> 
 					)} 

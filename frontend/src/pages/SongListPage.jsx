@@ -92,7 +92,7 @@ const SongListPage = () => {
                 ease: 'easeOut'
             }}
         >
-            <div className="mb-8 md:pt-0 pt-20">
+            <div className="mb-8">
                     <AddSongForm onSongAdded={handleSongAdded} />
             </div>
 

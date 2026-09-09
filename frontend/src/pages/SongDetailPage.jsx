@@ -92,7 +92,7 @@ const SongDetailPage = () => {
                 duration: 0.4,
                 ease: 'easeOut'
             }}
-            className="min-h-screen pt-16 md:pt-0"
+            className="min-h-screen"
         >
             <SongDetailNav onNavigateBack={handleNavigateBack}/>
             <div className="container mx-auto px-4 py-8 max-w-6xl">
