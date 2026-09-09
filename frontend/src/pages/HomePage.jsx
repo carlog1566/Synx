@@ -107,6 +107,7 @@ const HomePage = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: 0.15 }}
+                        className="md:mb-0 mb-10"
                     >
                         <ChordStrip />
                     </motion.div>
