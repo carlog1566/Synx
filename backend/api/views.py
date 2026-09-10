@@ -190,7 +190,7 @@ class RegisterView(APIView):
 
     def post(self, request):
         """
-        Creates a new user account.
+        Creates a new user account and assigns cookies on account creation.
 
         Parameters
         ----------
