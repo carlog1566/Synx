@@ -207,11 +207,11 @@ class RegisterView(APIView):
 
         username = request.data.get('username')
         password = request.data.get('password')
-        email = request.data.get('email', '')
+        email = request.data.get('email')
 
-        if not username or not password:
+        if not username or not password or not email:
             return Response(
-                {'error': 'Username and password are required'},
+                {'error': 'Username, password, and email are required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
