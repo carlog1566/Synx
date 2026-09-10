@@ -34,11 +34,55 @@ resend.api_key = config('RESEND_API_KEY')
 
 
 class SongViewset(viewsets.ModelViewSet):
+    """
+    Provides CRUD operations for Song objects. It is bounded by the authenticated
+    user's own songs and any songs that get marked as public.
+
+    Standard ModelViewSet actions (list, create, retrieve, update, destroy) are all
+    included automatically via Django REST Framework's routing. Two custom actions
+    extend this: analyze (chord detection) and toggle_public (sharing control).
+
+    Permissions
+    -----------
+    IsAuthenticated - all actions require a user who is logged-in.
+
+    Queryset Scoping
+    ----------------
+    Users can only see/modify their own songs, except for reading songs other users
+    have marked is_public = True (see get_queryset).
+    """
+
     serializer_class = SongSerializer
     permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=['post'])
     def analyze(self, request, pk=None):
+        """
+        Run chord detection and tab generation on this song's audio file, then persist
+        results to the Song record
+
+        The song must already have an audio_file uploaded;, this endpoint does not 
+        accept a new file, it processes whatever is already stored.
+
+        When USE_S3 is enabled, the audio file is downloaded to a temporary local file
+        first, since librosa's analysis requires a filesystem path rather than a remote
+        URL. The temp file is always cleaned up afterwards, whether analysis succeeds or
+        raises an exception.
+
+        Parameters
+        ----------
+        pk : int
+            The primary key (ID) of the Song to analyze, taken from the URL.
+
+        Returns
+        -------
+        Response
+            200 with the full serialized Song (including populated chords, tabs, and 
+            analyzed = True) on success.
+            400 if the song has no audio_file.
+            500 if chord detection or tab generation raises any exception
+        """
+
         song = self.get_object()
 
         if not song.audio_file:
@@ -81,6 +125,23 @@ class SongViewset(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def toggle_public(self, request, pk=None):
+        """
+        Toggles whether a song is public or not public. When public = True, the song is 
+        visible to all users including you. When public = False, the song is only visible 
+        to you.
+        
+        Parameters
+        ----------
+        pk : int
+            The primary key (ID) of the Song to analyze, taken from the URL.
+
+        Returns
+        -------
+        Response
+            200 with the serialized Song and the Song's is_public being True or False 
+            depending on its previous/original value.
+        """
+
         song = self.get_object()
         song.is_public = not song.is_public
         song.save()
@@ -88,10 +149,29 @@ class SongViewset(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
+        """
+        Collects the songs created by the user as well as public songs.
+
+        Returns
+        -------
+        django.db.models.query.QuerySet
+            A combined, deduplciated QuerySet that contains all Song records where the
+            owner is the current user or the song is marked as public.
+        """
+
         return Song.objects.filter(owner=self.request.user) | Song.objects.filter(is_public=True)
 
 
     def perform_create(self, serializer):
+        """
+        Saves a new Song and assigns the authenticated user as its owner.
+
+        Parameters
+        ----------
+        serializer : SongSerializer
+            The validated serializer instance used to create the Song
+        """
+
         serializer.save(owner=self.request.user)
 
 
