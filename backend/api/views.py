@@ -105,7 +105,7 @@ class RegisterView(APIView):
 
         if not username or not password or not email:
             return Response(
-                {'error': 'Username and password are required'},
+                {'error': 'Username, password, and email are required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
