@@ -80,7 +80,7 @@ class SongViewset(viewsets.ModelViewSet):
             200 with the full serialized Song (including populated chords, tabs, and 
             analyzed = True) on success.
             400 if the song has no audio_file.
-            500 if chord detection or tab generation raises any exception
+            500 if chord detection or tab generation raises any exception.
         """
 
         song = self.get_object()
@@ -122,7 +122,6 @@ class SongViewset(viewsets.ModelViewSet):
             return Response({'error': str(e)},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
     @action(detail=True, methods=['patch'])
     def toggle_public(self, request, pk=None):
         """
@@ -147,7 +146,6 @@ class SongViewset(viewsets.ModelViewSet):
         song.save()
         return Response(self.get_serializer(song).data)
 
-
     def get_queryset(self):
         """
         Collects the songs created by the user as well as public songs.
@@ -161,7 +159,6 @@ class SongViewset(viewsets.ModelViewSet):
 
         return Song.objects.filter(owner=self.request.user) | Song.objects.filter(is_public=True)
 
-
     def perform_create(self, serializer):
         """
         Saves a new Song and assigns the authenticated user as its owner.
@@ -169,16 +166,45 @@ class SongViewset(viewsets.ModelViewSet):
         Parameters
         ----------
         serializer : SongSerializer
-            The validated serializer instance used to create the Song
+            The validated serializer instance used to create the Song.
         """
 
         serializer.save(owner=self.request.user)
 
 
 class RegisterView(APIView):
+    """
+    Handles new user registration with traditional username & password credentials.
+
+    Validates that username and password are provided, enforces Django's password strength 
+    requirements, and ensures both username and email are unique before creating the account.
+    On success, immediately issues JWT auth cookes so the user is logged in without a 
+    separate login step.
+
+    Permissions
+    -----------
+    AllowAny - registration must be accessible to unauthenticated users.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Creates a new user account.
+
+        Parameters
+        ----------
+        request.data : dict
+            expected keys: 'username' (str), 'password' (str), 'email' (str).
+
+        Returns
+        -------
+        Response
+            201 with {'message': ..., 'username': ...} and auth cookies set on success.
+            400 with {'error': ...} if validation fails at any stage (missing fields, weak
+            password, duplicate username/email)).
+        """
+
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email', '')
