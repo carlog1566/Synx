@@ -17,17 +17,25 @@
 ## Tech Stack
 **Frontend**:
 
-React + Vite + TailwindCSS
+- React + Vite + TailwindCSS
 
-Axios for API calls
+- Axios for API calls
 
 **Backend**:
 
-Django + Django REST Framework
+- Django + Django REST Framework
 
-PostgreSQL database
+- PostgreSQL database
 
-Librosa for audio processing
+- Librosa for audio processing
+
+**Deployment**:
+
+- Vercel for frontend
+
+- Railway for backend
+
+- AWS S3 for media file storage
 
 # Setup
 
