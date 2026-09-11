@@ -257,7 +257,33 @@ class RegisterView(APIView):
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
+    """
+    Authenticates a user via username/password and issues JWT tokens as httpOnly cookies, rather
+    than returning them in the JSON response body (simplejwt's default behavior).
+
+    Overriding post() this way keeps tokens inaccessible to client-side JavaScript, protecting 
+    against theft via XSS, while still reusing simplejwt's built-in credential validation logic
+    via TokenObtainPairSerializer.
+    """
+
     def post(self, request, *args, **kwargs):
+        """
+        Validate username/password and log the user in.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected keys: 'username' (str), 'password' (str)
+
+        Returns
+        -------
+        Response
+            200 with {'message': 'Login Successful'} and access_token/refresh_token set as httpOnly
+            cookies, on valid credentials.
+            401 if credentials are invalid (raised automatically by is_valid(raise_exception=True) 
+            via the serializer).
+        """
+        
         serializer = TokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
