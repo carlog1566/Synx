@@ -283,7 +283,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             401 if credentials are invalid (raised automatically by is_valid(raise_exception=True) 
             via the serializer).
         """
-        
+
         serializer = TokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -298,9 +298,43 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
 
 class GoogleLoginView(APIView):
+    """
+    Authenticates and registers a user via Google Sign-in, then issues the same httpOnly JWT cookies
+    used by traditional login.
+
+    Verifies the Google ID token server-side (never trusting the frontend's claim about who the user
+    is), then either finds an existing account by email or creates a new one. New accounts receive a 
+    generated username derived from their email's local part and an unusable password, since Google
+    verification is the sole proof of identity for these users.
+
+    Permissions
+    -----------
+    AllowAny - registration must be accessible to unauthenticated users.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Verify a Google ID token and log the associated user in.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected key: 'credential' (str) - the Google ID token obtained by the frontend's Google
+            Sign-In button.
+
+        Returns
+        -------
+        Response
+            200 with {'message' : 'Login successful'} and access_token/refresh_token set as httpOnly
+            cookies, if the token is valid and the associated Google email is verified.
+            400 with {'error': ...} if no credential was provided in request.data
+            400 with {'error': ...} if the Google token fails verification (invalid, expired, or 
+            tampered with).
+            400 with {'error': ...} if the Google account's email is not verified.
+        """
+
         google_token = request.data.get('credential')
 
         if not google_token:
