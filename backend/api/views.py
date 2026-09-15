@@ -707,9 +707,45 @@ class ChangePasswordView(APIView):
 
 
 class DeleteAccountView(APIView):
+    """
+    Permanently deletes the authenticated user's account.
+
+    Users with a password must provide their current password, while users without a password must
+    confirm the deletion by entering "DELETE". Authentication cookies are removed after the account
+    is successfully deleted.
+
+    Permissions
+    -----------
+    IsAuthenticated - account deletion is only possible for users who are authenticated
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """
+        Deletes the authenticated user's account. Verifies the user's password if one exists, or
+        requires explicit "DELETE" confirmation for users without a password. Removes the user's
+        account and authentication cookies after successful verification.
+
+        Parameters
+        ----------
+        response.data : dict
+            Expected keys:
+              'password' (str) - the user's password if the user has one
+              'confirmation' (str) - the user's confirmation if they do not have a password
+
+        Returns
+        -------
+            200 with {'message': 'Account deleted successfully'} with access_token and refresh_token
+            cookies cleared.
+            400 with {'error': 'Password is required'} if the user has a password and attempts to
+            delete their account without providing a password
+            400 with {'error': 'Incorrect password'} if the user has a password and provides the 
+            wrong password to delete their account
+            400 with {'error': 'Type DELETE to confirm account deletion'} if the user does not have
+            a password and attempts to delete their account with incorrect/no confirmation
+        """
+
         user = request.user
 
         if user.has_usable_password():
