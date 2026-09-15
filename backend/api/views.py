@@ -786,9 +786,30 @@ class DeleteAccountView(APIView):
 
 
 class SongStatsView(APIView):
+    """
+    Returns song statistics for the authenticated user.
+
+    Provides the total number of songs owned by the user and the number of those songs that have
+    been analyzed
+
+    Permissions
+    -----------
+    IsAuthenticated - only authenticated users can access this view, ensuring users can only retrieve
+    statistics for their own accounts.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """
+        Retrieves song statistics for the authenticated user. Counts the user's total songs and the
+        total number of songs that have been successfully analyzed, then returns both counts.
+
+        Returns
+        -------
+            200 with {'total_songs': total_songs, 'analyzed_songs': analyzed_songs} always
+        """
+
         total_songs = Song.objects.filter(owner=self.request.user).count()
         analyzed_songs = Song.objects.filter(owner=self.request.user, analyzed=True).count()
 
