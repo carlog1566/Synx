@@ -195,7 +195,10 @@ class RegisterView(APIView):
         Parameters
         ----------
         request.data : dict
-            Expected keys: 'username' (str), 'password' (str), 'email' (str).
+            Expected keys: 
+              'username' (str) - the user's desired username
+              'password' (str) - the user's desired password
+              'email' (str) - the user's chosen email
 
         Returns
         -------
@@ -273,7 +276,9 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         Parameters
         ----------
         request.data : dict
-            Expected keys: 'username' (str), 'password' (str)
+            Expected keys: 
+              'username' (str) - the inputted username
+              'password' (str) - the inputted password
 
         Returns
         -------
@@ -321,8 +326,8 @@ class GoogleLoginView(APIView):
         Parameters
         ----------
         request.data : dict
-            Expected key: 'credential' (str) - the Google ID token obtained by the frontend's Google
-            Sign-In button.
+            Expected key: 
+              'credential' (str) - the Google ID token obtained by the frontend's Google Sign-In button.
 
         Returns
         -------
@@ -486,8 +491,8 @@ class ForgotPasswordView(APIView):
         Parameters
         ----------
         request.data : dict
-            Expected key: 'email' (str) - the email taht the user believes is associated with their 
-            account.
+            Expected key: 
+              'email' (str) - the email taht the user believes is associated with their account.
 
         Returns
         -------
@@ -538,9 +543,43 @@ class ForgotPasswordView(APIView):
 
 
 class ResetPasswordConfirmView(APIView):
+    """
+    Completes the password reset flow started by ForgotPasswordView. 
+    
+    Validates that the uid decodes to a real, existing user, and that the token is genuine, unexpired,
+    and unused for that specific user.
+
+    Permissions
+    -----------
+    AllowAny - the reset link itself, not the login session, is what proves the requester's identity.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Verify the reset link and set a new password if valid.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected keys:
+              'uid' (str) - base64-encoded user id from the reset link
+              'token' (str) - the reset token from the reset link
+              'new_password' (str) - the password to set
+
+        Returns
+        -------
+        Response
+            200 with {'message': 'Password reset successfully'} if uid, token, and new_password are
+            all valid.
+            400 with {'error': 'Invalid reset link'} if uid can't be decoded or doesn't correspond
+            to an existing user.
+            400 with {'error': 'Invalid token'} if the token doesn't match a valid, unexpired reset
+            credential for that user.
+            400 with {'error': [...]} if new_password fails Django's password strength validation.
+        """
+
         uidb64 = request.data.get('uid')
         token = request.data.get('token')
         new_password = request.data.get('new_password')
