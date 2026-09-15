@@ -195,7 +195,7 @@ class RegisterView(APIView):
         Parameters
         ----------
         request.data : dict
-            expected keys: 'username' (str), 'password' (str), 'email' (str).
+            Expected keys: 'username' (str), 'password' (str), 'email' (str).
 
         Returns
         -------
@@ -412,7 +412,8 @@ class LogoutView(APIView):
 
     Permissions
     -----------
-    AllowAny - log out can be performed by an authenticated user or an already logged out user with no risks
+    AllowAny - log out can be performed by an authenticated user or an already logged out user with no 
+               risks
     """
 
     permission_classes = [AllowAny]
@@ -467,9 +468,35 @@ class MeView(APIView):
 
 
 class ForgotPasswordView(APIView):
+    """
+    Sends a password reset email if the given email matches an already existing account.
+
+    Permissions
+    -----------
+    AllowAny - any user is able request this email to be sent
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Sends a password reset email if the given email matdches an existing account. Deliberately
+        returns the same response either way, whether or not the email exists.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected key: 'email' (str) - the email taht the user believes is associated with their 
+            account.
+
+        Returns
+        -------
+            200 with {'message': 'If that email exists, a reset link has been sent.'} regardless if
+            the email exists or the reset link was actually sent.
+            500 with {'error': 'Failed to send reset email'} if sending the email via Resend fails
+            for any reason.
+        """
+
         email = request.data.get('email')
 
         try:
