@@ -414,6 +414,7 @@ class LogoutView(APIView):
     -----------
     AllowAny - log out can be performed by an authenticated user or an already logged out user with no risks
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -426,6 +427,7 @@ class LogoutView(APIView):
             200 with {'message': 'Logged out successfully'} always, with access_token and refresh_token
             cookies cleared.
         """
+
         response = Response({'message': 'Logged out successfully'})
 
         response.delete_cookie('access_token')
@@ -435,9 +437,27 @@ class LogoutView(APIView):
 
 
 class MeView(APIView):
+    """
+    Obtain the current user's information. Used as the frontend's way to check whether a user is logged
+    in.
+
+    Permissions
+    -----------
+    IsAuthenticated - can only be performed by a logged in user
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """
+        Obtain the current user's username, email, date_joined, and has_password
+
+        Returns
+        -------
+            200 with {'username': username, 'email': email, 'date_joined': date_joined, 'has_password':
+            has_usable_password()} always
+        """
+
         return Response({
             'username': request.user.username,
             'email': request.user.email,
