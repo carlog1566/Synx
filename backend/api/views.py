@@ -615,9 +615,49 @@ class ResetPasswordConfirmView(APIView):
 
 
 class ChangePasswordView(APIView):
+    """
+    Changes the authenticated user's password.
+
+    Requires the current password for users with an existing password, validates and confirms the new
+    password, and supports creating a password for users who do not currently have one (users who
+    logged in via Google).
+
+    Permissions
+    -----------
+    IsAuthenticated - only authenticated users can access this view and provides another way for a
+    user to change their password without going through the forgot password flow
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """
+        Updates the authenticated user's password. Verfies the current password if one exists, checks
+        that the new password and confirmation match, validates the new password, and saves the 
+        updated password.
+        
+        Parameters
+        ----------
+        request.data : dict
+            Expected keys:
+              'current_password' (str) - the user's current password.
+              'new_password' (str) - the password the user wants to change their password to.
+              'confirm_password' (str) - verifies that the new password is correct.
+
+        Returns
+        -------
+            200 with {'message': 'Password changed successfully'} if the user had an existing password
+            and changed it.
+            200 with {'message': 'Password created successfully'} if the user did not have a password
+            previously.
+            400 with {'error': 'Current password is required'} if the user did not provide their 
+            current password.
+            400 with {'error': 'Current password is incorrect'} if the user did not provide the 
+            correct password.
+            400 with {'error': 'Passwords do not match'} if the user's new password doesn't match the
+            confirm password.
+        """
+
         user = request.user
 
         current_password = request.data.get('current_password')
