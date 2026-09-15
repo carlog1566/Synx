@@ -407,9 +407,25 @@ class GoogleLoginView(APIView):
 
 
 class LogoutView(APIView):
+    """
+    Clears the JWT auth cookies, logging the current user out.
+
+    Permissions
+    -----------
+    AllowAny - log out can be performed by an authenticated user or an already logged out user with no risks
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Log the current user out by clearning their auth cookies.
+
+        Returns
+        -------
+        Response
+            200 with {'message': 'Logged out successfully'} always, with access_token and refresh_token
+            cookies cleared.
+        """
         response = Response({'message': 'Logged out successfully'})
 
         response.delete_cookie('access_token')
