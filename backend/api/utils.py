@@ -4,10 +4,16 @@ def set_auth_cookies(response, access_token, refresh_token):
     """
     Helper function to set the user's JWT auth cookies when logging in.
 
-    Takes newly created JWT tokens and assigns them to the user via secure HTTP-only cookies.
+    Takes newly created JWT tokens and assigns them to the user via secure HTTP-only cookies. Cookie 
+    settings adapt to environment: samesite is 'Lax' locally (frontend and backend share localhost) 
+    but must be 'None' in production, since frontend and backend live on different domains 
+    (Vercel/Railway) and 'Lax' would silently block the cookies from being sent cross-site. 'None' 
+    requires secure=True, which is why both change together based on DEBUG.
     
     Parameters
     ----------
+    response : rest_framework.response.Response
+        The response object to attatch cookies to.
     access_token : str
         A newly created JWT authentication token that will be assigned to the user via a secure
         HTTP-only cookie.
