@@ -3,11 +3,22 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class Song(models.Model):
+    """
+    Represents an uploaded song and its chord/tab analysis results.
+
+    owner is nullable to accomodate any legacy pre-auth data. Every song created through the
+    normal upload flow always has one (assinged in SongViewset.perform_create). is_public
+    controls whether other users can see this song.
+
+    chords and tabs stay null until analyze() populates them, analyzed=True marks that this 
+    happened.
+    """
+
     owner = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
-        null=True,      # null=True because no auth yet
-        blank=True,     # blank=True because no auth yet
+        null=True,      # Nullable to support legacy pre-auth songs
+        blank=True,     # New songs always get an owner via perform_create()
         related_name='songs'
     )
     is_public = models.BooleanField(default=False)  # For "share publicly" feature later

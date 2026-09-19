@@ -5,6 +5,14 @@ import boto3
 from .models import Song
 
 class SongSerializer(serializers.ModelSerializer):
+    """
+    Serializes Song objects for the API, and computes audio duration automatically on creation
+    if it wasn't already known.
+
+    audio_file_url is a computed field (not a raw model field) that returns either a permanent
+    local URL or a temporary S3 signed URL, depending on the storage backend - see get_audio_file_url.
+    """
+
     audio_file_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -14,6 +22,24 @@ class SongSerializer(serializers.ModelSerializer):
 
 
     def create(self, validated_data):
+        """
+        Create a Song, then attempt to auto-detect its duration.
+        
+        Duration detection failures are caught and logged, if detection fails, the Song is still
+        saved with duration=0.
+
+        Parameters
+        ----------
+        validated_data : dict
+            The validated fields from the incoming request, as prepared by DRF before create() is
+            called.
+
+        Returns
+        -------
+        Song
+            The newly created Song instance, with duration populated if detection succeeded.
+        """
+
         song = Song.objects.create(**validated_data)
 
         if song.audio_file:
@@ -40,6 +66,24 @@ class SongSerializer(serializers.ModelSerializer):
 
 
     def get_audio_file_url(self, obj):
+        """
+        Return a playable URL for the song's audio file.
+
+        When USE_S3 is enabled (True), it generates a temporary signed URL (valid for 1 hour)
+        rather than exposing a permanent public link. Locally, it just returns the file's normal
+        Django-served URL.
+
+        Parameters
+        ----------
+        obj : Song
+            The Song instance being serialized.
+
+        Returns
+        -------
+        str or None
+            A URL the frontend can use to fetch/play the audio, or None if no audio_file exists.
+        """
+
         if not obj.audio_file:
             return None
 
