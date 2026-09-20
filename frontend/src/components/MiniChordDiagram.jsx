@@ -1,5 +1,17 @@
 import { motion } from 'framer-motion'
 
+/**
+ * Renders a single small, static guitar chord diagram (nut, frets, strings, finger markers) for
+ * use in ChordStrip's scrolling preview on the landing page. Not connected to real song data,
+ * and are purely decorative.
+ * 
+ * @param {string[]} strings - string names, low to high
+ * @param {{name: string, positions: string[]}} chord - chord name and fret positions ('x', '0',
+ *  or a fret number as a string)
+ * @param {boolean} isActive - whether this diagram is the current highlighted one in the 
+ *  scrolling strip
+ * @param {number} chardWidth - width in px, matches ChordStrip's layout
+ */
 const MiniChordDiagram = ({ strings, chord, isActive, cardWidth}) => {
     const w = 72
     const h = 88
