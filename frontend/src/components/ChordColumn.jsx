@@ -9,8 +9,8 @@
  * @param {string[]} strings - string names, low to high
  * @param {number} stringSpacing - vertical px between string rows
  * @param {number} paddingTop - vertical offset before the first string row
- * @param {Function} onSeek - called with chordData.time when this 
- *   column is clicked, seeking audio playback to that point
+ * @param {Function} onSeek - called with chordData.time when this column is clicked, seeking 
+ *  audio playback to that point
  */
 const ChordColumn = ({ chordData, xPosition, isActive, strings, stringSpacing, paddingTop, onSeek }) => {
 
