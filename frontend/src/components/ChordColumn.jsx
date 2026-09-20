@@ -1,3 +1,17 @@
+/**
+ * Renders one chord's column within FretboardDisplay's SVG: the chord name, a highlighted
+ * background when active, one row per string showing its fret position, and a transparent
+ * hit-area rect enabling click-to-seek across the whole column.
+ * 
+ * @param {{chord: string, time: number, positions: Object}} chordData
+ * @param {number} xPosition - horizontal center of this column in the SVG
+ * @param {boolean} isActive - whether this chord is currently playing
+ * @param {string[]} strings - string names, low to high
+ * @param {number} stringSpacing - vertical px between string rows
+ * @param {number} paddingTop - vertical offset before the first string row
+ * @param {Function} onSeek - called with chordData.time when this 
+ *   column is clicked, seeking audio playback to that point
+ */
 const ChordColumn = ({ chordData, xPosition, isActive, strings, stringSpacing, paddingTop, onSeek }) => {
 
     return (

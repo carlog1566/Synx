@@ -1,5 +1,11 @@
 import React from 'react'
 
+/**
+ * Displays a compact, float list of detatched chords with timestamps as small pill-style tags.
+ * Used as a simple visual summary, separate from teh full interactive FretboardDisplay.
+ * 
+ * @param {{time: number, chord: string}[]} chords
+ */
 const ChordDisplay = ({ chords }) => {
 
     if (!chords || chords.length === 0) {
