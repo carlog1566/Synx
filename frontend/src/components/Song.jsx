@@ -2,6 +2,17 @@ import { Link } from "react-router"
 import ChordDisplay from "./ChordDisplay"
 import SongListPage from "../pages/SongListPage"
 
+/**
+ * Displays a single song as a card: title/artist header, duration, analysis status, and action 
+ * buttons (analyze/retry) depending on the song's current state. Clicking the header navigates to 
+ * the song's detail page, unless analysis is currently in progress.
+ * 
+ * @param {Object} song - the song record
+ * @param {number[]} analyzingIds - ids of songs currently being analyzed, used to show a spinner 
+ *  and disable navigation for this specific card if its id is in the list
+ * @param {Function} handleAnalyze - triggers (re)analysis for this song
+ * @param {Function} formatDuration - formats seconds as M:SS
+ */
 const Song = ({ song, analyzingIds, handleAnalyze, formatDuration }) => {
 
     const isAnalyzing = analyzingIds.includes(song.id)
