@@ -27,6 +27,7 @@ from songs.tab_generator import TabGenerator
 from .models import Song
 from .serializers import SongSerializer
 from .utils import set_auth_cookies
+from .throttles import RegisterThrottle
 
 # Create your views here.
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
@@ -187,6 +188,7 @@ class RegisterView(APIView):
     """
 
     permission_classes = [AllowAny]
+    throttle_classes = [RegisterThrottle]
 
     def post(self, request):
         """
