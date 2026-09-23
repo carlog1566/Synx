@@ -194,6 +194,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'api.authentication.CookieJWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_RATES': {
+        'register': '4/hour',
+    },
 }
 
 SIMPLE_JWT = {

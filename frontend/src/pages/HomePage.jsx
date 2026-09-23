@@ -3,7 +3,15 @@ import { motion, useMotionValue, useAnimationFrame } from 'framer-motion'
 import { FaUpload, FaRobot, FaMusic, FaGuitar, FaBolt, FaChartLine, FaSave, FaBullseye, FaRocket, FaArrowRight } from 'react-icons/fa'
 import ChordStrip from '../components/ChordStrip'
 
-
+/**
+ * Wraps children in a fade up on scroll animation, triggered once when the element enters the
+ * viewport, not on every scroll past it. Prevents repeated re-triggering as the user scrolls up
+ * and down past the same section.
+ * 
+ * @param {React.ReactNode} children
+ * @param {number} [delay=0] - animation delay in seconds, used to stagger multiple FadeUp elements 
+ *  in sequence
+ */
 const FadeUp = ({ children, delay = 0 }) => (
     <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -15,7 +23,15 @@ const FadeUp = ({ children, delay = 0 }) => (
     </motion.div>
 )
 
-
+/**
+ * One numbered step in the "How It Works" section.
+ * 
+ * @param {React.ComponentType} icon - react-icons component
+ * @param {number} number - step number, shown before the title
+ * @param {string} title
+ * @param {string} description
+ * @param {number} delay - passed through to FadeUp for staggered entry
+ */
 const StepCard = ({ icon: Icon, number, title, description, delay }) => (
     <FadeUp delay={delay}>
         <div className="text-center group">
@@ -34,7 +50,14 @@ const StepCard = ({ icon: Icon, number, title, description, delay }) => (
     </FadeUp>
 )
 
-
+/**
+ * One feature card in the features grid.
+ * 
+ * @param {React.ComponentType} icon
+ * @param {string} title
+ * @param {string} description
+ * @param {number} delay - passed through to FadeUp for staggered entry
+ */
 const HomeCard = ({ icon: Icon, title, description, delay }) => (
     <FadeUp delay={delay}>
         <motion.div
@@ -50,7 +73,10 @@ const HomeCard = ({ icon: Icon, title, description, delay }) => (
     </FadeUp>
 )
 
-
+/**
+ * Landing page: hero section, decorative auto-scrolling chord strip (ChordStrip - not connected to
+ * real data), "how it works" steps, and a feature grid.
+ */
 const HomePage = () => {
 
     return (

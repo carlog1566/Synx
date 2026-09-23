@@ -27,6 +27,7 @@ from songs.tab_generator import TabGenerator
 from .models import Song
 from .serializers import SongSerializer
 from .utils import set_auth_cookies
+from .throttles import RegisterThrottle
 
 # Create your views here.
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
@@ -34,11 +35,55 @@ resend.api_key = config('RESEND_API_KEY')
 
 
 class SongViewset(viewsets.ModelViewSet):
+    """
+    Provides CRUD operations for Song objects. It is bounded by the authenticated
+    user's own songs and any songs that get marked as public.
+
+    Standard ModelViewSet actions (list, create, retrieve, update, destroy) are all
+    included automatically via Django REST Framework's routing. Two custom actions
+    extend this: analyze (chord detection) and toggle_public (sharing control).
+
+    Permissions
+    -----------
+    IsAuthenticated - all actions require a user who is logged-in.
+
+    Queryset Scoping
+    ----------------
+    Users can only see/modify their own songs, except for reading songs other users
+    have marked is_public = True (see get_queryset).
+    """
+
     serializer_class = SongSerializer
     permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=['post'])
     def analyze(self, request, pk=None):
+        """
+        Run chord detection and tab generation on this song's audio file, then persist
+        results to the Song record
+
+        The song must already have an audio_file uploaded;, this endpoint does not 
+        accept a new file, it processes whatever is already stored.
+
+        When USE_S3 is enabled, the audio file is downloaded to a temporary local file
+        first, since librosa's analysis requires a filesystem path rather than a remote
+        URL. The temp file is always cleaned up afterwards, whether analysis succeeds or
+        raises an exception.
+
+        Parameters
+        ----------
+        pk : int
+            The primary key (ID) of the Song to analyze, taken from the URL.
+
+        Returns
+        -------
+        Response
+            200 with the full serialized Song (including populated chords, tabs, and 
+            analyzed = True) on success.
+            400 if the song has no audio_file.
+            500 if chord detection or tab generation raises any exception.
+        """
+
         song = self.get_object()
 
         if not song.audio_file:
@@ -78,27 +123,93 @@ class SongViewset(viewsets.ModelViewSet):
             return Response({'error': str(e)},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
     @action(detail=True, methods=['patch'])
     def toggle_public(self, request, pk=None):
+        """
+        Toggles whether a song is public or not public. When public = True, the song is 
+        visible to all users including you. When public = False, the song is only visible 
+        to you.
+        
+        Parameters
+        ----------
+        pk : int
+            The primary key (ID) of the Song to analyze, taken from the URL.
+
+        Returns
+        -------
+        Response
+            200 with the serialized Song and the Song's is_public being True or False 
+            depending on its previous/original value.
+        """
+
         song = self.get_object()
         song.is_public = not song.is_public
         song.save()
         return Response(self.get_serializer(song).data)
 
-
     def get_queryset(self):
+        """
+        Collects the songs created by the user as well as public songs.
+
+        Returns
+        -------
+        django.db.models.query.QuerySet
+            A combined, deduplciated QuerySet that contains all Song records where the
+            owner is the current user or the song is marked as public.
+        """
+
         return Song.objects.filter(owner=self.request.user) | Song.objects.filter(is_public=True)
 
-
     def perform_create(self, serializer):
+        """
+        Saves a new Song and assigns the authenticated user as its owner.
+
+        Parameters
+        ----------
+        serializer : SongSerializer
+            The validated serializer instance used to create the Song.
+        """
+
         serializer.save(owner=self.request.user)
 
 
 class RegisterView(APIView):
+    """
+    Handles new user registration with traditional username & password credentials.
+
+    Validates that username and password are provided, enforces Django's password strength 
+    requirements, and ensures both username and email are unique before creating the account.
+    On success, immediately issues JWT auth cookes so the user is logged in without a 
+    separate login step.
+
+    Permissions
+    -----------
+    AllowAny - registration must be accessible to unauthenticated users.
+    """
+
     permission_classes = [AllowAny]
+    throttle_classes = [RegisterThrottle]
 
     def post(self, request):
+        """
+        Creates a new user account and assigns cookies on account creation.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected keys: 
+              'username' (str) - the user's desired username
+              'password' (str) - the user's desired password
+              'email' (str) - the user's chosen email
+
+        Returns
+        -------
+        Response
+            201 with {'message': ..., 'username': ...} and auth cookies set on success.
+            400 with {'error': ...} if validation fails at any stage (missing fields, weak
+            password, duplicate username/email)).
+        """
+
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email')
@@ -151,7 +262,35 @@ class RegisterView(APIView):
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
+    """
+    Authenticates a user via username/password and issues JWT tokens as httpOnly cookies, rather
+    than returning them in the JSON response body (simplejwt's default behavior).
+
+    Overriding post() this way keeps tokens inaccessible to client-side JavaScript, protecting 
+    against theft via XSS, while still reusing simplejwt's built-in credential validation logic
+    via TokenObtainPairSerializer.
+    """
+
     def post(self, request, *args, **kwargs):
+        """
+        Validate username/password and log the user in.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected keys: 
+              'username' (str) - the inputted username
+              'password' (str) - the inputted password
+
+        Returns
+        -------
+        Response
+            200 with {'message': 'Login Successful'} and access_token/refresh_token set as httpOnly
+            cookies, on valid credentials.
+            401 if credentials are invalid (raised automatically by is_valid(raise_exception=True) 
+            via the serializer).
+        """
+
         serializer = TokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -166,9 +305,43 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
 
 class GoogleLoginView(APIView):
+    """
+    Authenticates and registers a user via Google Sign-in, then issues the same httpOnly JWT cookies
+    used by traditional login.
+
+    Verifies the Google ID token server-side (never trusting the frontend's claim about who the user
+    is), then either finds an existing account by email or creates a new one. New accounts receive a 
+    generated username derived from their email's local part and an unusable password, since Google
+    verification is the sole proof of identity for these users.
+
+    Permissions
+    -----------
+    AllowAny - registration must be accessible to unauthenticated users.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Verify a Google ID token and log the associated user in.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected key: 
+              'credential' (str) - the Google ID token obtained by the frontend's Google Sign-In button.
+
+        Returns
+        -------
+        Response
+            200 with {'message' : 'Login successful'} and access_token/refresh_token set as httpOnly
+            cookies, if the token is valid and the associated Google email is verified.
+            400 with {'error': ...} if no credential was provided in request.data
+            400 with {'error': ...} if the Google token fails verification (invalid, expired, or 
+            tampered with).
+            400 with {'error': ...} if the Google account's email is not verified.
+        """
+
         google_token = request.data.get('credential')
 
         if not google_token:
@@ -241,9 +414,28 @@ class GoogleLoginView(APIView):
 
 
 class LogoutView(APIView):
+    """
+    Clears the JWT auth cookies, logging the current user out.
+
+    Permissions
+    -----------
+    AllowAny - log out can be performed by an authenticated user or an already logged out user with no 
+               risks
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Log the current user out by clearning their auth cookies.
+
+        Returns
+        -------
+        Response
+            200 with {'message': 'Logged out successfully'} always, with access_token and refresh_token
+            cookies cleared.
+        """
+
         response = Response({'message': 'Logged out successfully'})
 
         response.delete_cookie('access_token')
@@ -253,9 +445,27 @@ class LogoutView(APIView):
 
 
 class MeView(APIView):
+    """
+    Obtain the current user's information. Used as the frontend's way to check whether a user is logged
+    in.
+
+    Permissions
+    -----------
+    IsAuthenticated - can only be performed by a logged in user
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """
+        Obtain the current user's username, email, date_joined, and has_password
+
+        Returns
+        -------
+            200 with {'username': username, 'email': email, 'date_joined': date_joined, 'has_password':
+            has_usable_password()} always
+        """
+
         return Response({
             'username': request.user.username,
             'email': request.user.email,
@@ -265,9 +475,35 @@ class MeView(APIView):
 
 
 class ForgotPasswordView(APIView):
+    """
+    Sends a password reset email if the given email matches an already existing account.
+
+    Permissions
+    -----------
+    AllowAny - any user is able request this email to be sent
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Sends a password reset email if the given email matdches an existing account. Deliberately
+        returns the same response either way, whether or not the email exists.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected key: 
+              'email' (str) - the email taht the user believes is associated with their account.
+
+        Returns
+        -------
+            200 with {'message': 'If that email exists, a reset link has been sent.'} regardless if
+            the email exists or the reset link was actually sent.
+            500 with {'error': 'Failed to send reset email'} if sending the email via Resend fails
+            for any reason.
+        """
+
         email = request.data.get('email')
 
         try:
@@ -309,9 +545,43 @@ class ForgotPasswordView(APIView):
 
 
 class ResetPasswordConfirmView(APIView):
+    """
+    Completes the password reset flow started by ForgotPasswordView. 
+    
+    Validates that the uid decodes to a real, existing user, and that the token is genuine, unexpired,
+    and unused for that specific user.
+
+    Permissions
+    -----------
+    AllowAny - the reset link itself, not the login session, is what proves the requester's identity.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Verify the reset link and set a new password if valid.
+
+        Parameters
+        ----------
+        request.data : dict
+            Expected keys:
+              'uid' (str) - base64-encoded user id from the reset link
+              'token' (str) - the reset token from the reset link
+              'new_password' (str) - the password to set
+
+        Returns
+        -------
+        Response
+            200 with {'message': 'Password reset successfully'} if uid, token, and new_password are
+            all valid.
+            400 with {'error': 'Invalid reset link'} if uid can't be decoded or doesn't correspond
+            to an existing user.
+            400 with {'error': 'Invalid token'} if the token doesn't match a valid, unexpired reset
+            credential for that user.
+            400 with {'error': [...]} if new_password fails Django's password strength validation.
+        """
+
         uidb64 = request.data.get('uid')
         token = request.data.get('token')
         new_password = request.data.get('new_password')
@@ -347,9 +617,49 @@ class ResetPasswordConfirmView(APIView):
 
 
 class ChangePasswordView(APIView):
+    """
+    Changes the authenticated user's password.
+
+    Requires the current password for users with an existing password, validates and confirms the new
+    password, and supports creating a password for users who do not currently have one (users who
+    logged in via Google).
+
+    Permissions
+    -----------
+    IsAuthenticated - only authenticated users can access this view and provides another way for a
+    user to change their password without going through the forgot password flow
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """
+        Updates the authenticated user's password. Verfies the current password if one exists, checks
+        that the new password and confirmation match, validates the new password, and saves the 
+        updated password.
+        
+        Parameters
+        ----------
+        request.data : dict
+            Expected keys:
+              'current_password' (str) - the user's current password.
+              'new_password' (str) - the password the user wants to change their password to.
+              'confirm_password' (str) - verifies that the new password is correct.
+
+        Returns
+        -------
+            200 with {'message': 'Password changed successfully'} if the user had an existing password
+            and changed it.
+            200 with {'message': 'Password created successfully'} if the user did not have a password
+            previously.
+            400 with {'error': 'Current password is required'} if the user did not provide their 
+            current password.
+            400 with {'error': 'Current password is incorrect'} if the user did not provide the 
+            correct password.
+            400 with {'error': 'Passwords do not match'} if the user's new password doesn't match the
+            confirm password.
+        """
+
         user = request.user
 
         current_password = request.data.get('current_password')
@@ -399,9 +709,45 @@ class ChangePasswordView(APIView):
 
 
 class DeleteAccountView(APIView):
+    """
+    Permanently deletes the authenticated user's account.
+
+    Users with a password must provide their current password, while users without a password must
+    confirm the deletion by entering "DELETE". Authentication cookies are removed after the account
+    is successfully deleted.
+
+    Permissions
+    -----------
+    IsAuthenticated - account deletion is only possible for users who are authenticated
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """
+        Deletes the authenticated user's account. Verifies the user's password if one exists, or
+        requires explicit "DELETE" confirmation for users without a password. Removes the user's
+        account and authentication cookies after successful verification.
+
+        Parameters
+        ----------
+        response.data : dict
+            Expected keys:
+              'password' (str) - the user's password if the user has one
+              'confirmation' (str) - the user's confirmation if they do not have a password
+
+        Returns
+        -------
+            200 with {'message': 'Account deleted successfully'} with access_token and refresh_token
+            cookies cleared.
+            400 with {'error': 'Password is required'} if the user has a password and attempts to
+            delete their account without providing a password
+            400 with {'error': 'Incorrect password'} if the user has a password and provides the 
+            wrong password to delete their account
+            400 with {'error': 'Type DELETE to confirm account deletion'} if the user does not have
+            a password and attempts to delete their account with incorrect/no confirmation
+        """
+
         user = request.user
 
         if user.has_usable_password():
@@ -442,9 +788,30 @@ class DeleteAccountView(APIView):
 
 
 class SongStatsView(APIView):
+    """
+    Returns song statistics for the authenticated user.
+
+    Provides the total number of songs owned by the user and the number of those songs that have
+    been analyzed
+
+    Permissions
+    -----------
+    IsAuthenticated - only authenticated users can access this view, ensuring users can only retrieve
+    statistics for their own accounts.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """
+        Retrieves song statistics for the authenticated user. Counts the user's total songs and the
+        total number of songs that have been successfully analyzed, then returns both counts.
+
+        Returns
+        -------
+            200 with {'total_songs': total_songs, 'analyzed_songs': analyzed_songs} always
+        """
+
         total_songs = Song.objects.filter(owner=self.request.user).count()
         analyzed_songs = Song.objects.filter(owner=self.request.user, analyzed=True).count()
 

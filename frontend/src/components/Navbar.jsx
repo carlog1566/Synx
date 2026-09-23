@@ -6,11 +6,24 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router'
 import UserMenu from './UserMenu'
 
+/**
+ * Site-wide navigation header. Adapts to auth state (UserMenu dropdown vs Sign In/Sign up links)
+ * and screen size (desktop vs mobile menu).
+ * 
+ * navRef is forwarded up to App.jsx, which measures this header's height via ResizeObserver to
+ * dynamically size page content's top padding, see App.jsx's docstring for full reasoning.
+ */
 const Navbar = ({ menuOpen, setMenuOpen, navRef }) => {
 	const { user, logout } = useAuth()
 	const navigate = useNavigate()
 
 	useEffect(() => {
+		/**
+		 * Auto-closes the mobile menu when the viewport crosses into desktop width, preventing the
+		 * mobile dropdown from staying stuck, open if the window is resized (or on rotation) while
+		 * it's expanded.
+		 */
+
         const mediaQuery = window.matchMedia('(min-width: 768px)')
 
         const handleChange = (event) => {

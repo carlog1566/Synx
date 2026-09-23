@@ -35,6 +35,27 @@ class TabGenerator:
 
 
     def generate(self, chords, instrument='guitar'):
+        """
+        Generates structured tablature data from a chord progression.
+
+        Parameters
+        ----------
+        chords : list
+            List of dicts with 'time' and 'chord' keys.
+            Example: [{'time': 0, 'chord':C}, {'time': 1, 'chord': 'G'}]
+        instrument : str
+            Desired instrument for tabs.
+
+        Returns
+        -------
+        list
+            List of dicts containing the chord's time, name, and string positions.
+            Each dict contains:
+              'time' (float) - the time at which the chord occurs.
+              'chord' (str) - the name of the chord.
+              'positions' (dict) - the finger positions for each string.
+        """
+
         if instrument == 'guitar':
             chord_dict = self.GUITAR_CHORDS
 
@@ -53,20 +74,20 @@ class TabGenerator:
 
     def generate_ascii(self, chords, instrument='guitar'):
         """
-        Method used to generate ASCII tablature from chord progression
+        Method used to generate ASCII tablature from chord progression.
 
         Parameters
         ----------
         chords : list
-            List of dicts with 'time' and 'chord' keys
+            List of dicts with 'time' and 'chord' keys.
             Example: [{'time': 0, 'chord':C}, {'time': 1, 'chord': 'G'}]
         instrument : str
-            Desired instrument for tabs
+            Desired instrument for tabs.
         
         Returns
         -------
         str
-            Formatted ASCII tablature
+            Formatted ASCII tablature.
         """
 
         if instrument == 'guitar':
@@ -110,19 +131,19 @@ class TabGenerator:
 
     def _get_chord_diagram(self, chord, chord_dict):
         """
-        Get diagram for a chord with a fallback strategy
+        Get diagram for a chord with a fallback strategy.
 
         Parameters
         ----------
         chord : str
-            Chord name (e.g. 'C', 'G', 'Am')
+            Chord name (e.g. 'C', 'G', 'Am').
         chord_dict : dict
-            Dictionary of chord finger placements
+            Dictionary of chord finger placements.
 
         Returns
         -------
         list or None
-            Finger positions for chord or None if chord not found
+            Finger positions for chord or None if chord not found.
         """
 
         if chord in chord_dict:
@@ -141,21 +162,21 @@ class TabGenerator:
 
     def _format_chord_diagram(self, chord, positions, instrument='guitar'):
         """
-        Create ASCII diagram for a single chord (to be changed soon)
+        Create ASCII diagram for a single chord (to be changed soon).
 
         Parameters
         ----------
         chord : str
-            Chord name (e.g. 'C', 'G', 'Am')
+            Chord name (e.g. 'C', 'G', 'Am').
         positions : list
-            Finger/fret positions for the chord
+            Finger/fret positions for the chord.
         instrument : str
-            Desired instrument for tabs
+            Desired instrument for tabs.
 
         Returns
         -------
         str
-            ASCII art chord diagram (to be changed soon)
+            ASCII art chord diagram (to be changed soon).
         """
 
         if not positions:
@@ -176,18 +197,18 @@ class TabGenerator:
 
     def _format_progression_timeline(self, chords):
         """
-        Format the chord progression with timestamps
+        Format the chord progression with timestamps.
 
         Parameters
         ----------
         chords : list
-            List of dicts with 'time' and 'chord' keys
+            List of dicts with 'time' and 'chord' keys.
             Example: [{'time': 0, 'chord':C}, {'time': 1, 'chord': 'G'}]
         
         Returns
         -------
         str
-            Formatted timeline (e.g. "C - 0:00      A - 0:01        G - 0:02)
+            Formatted timeline (e.g. "C - 0:00      A - 0:01        G - 0:02).
         """
 
         timeline = []

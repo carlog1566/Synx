@@ -4,6 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { FiUser } from "react-icons/fi";
 
+/**
+ * Displays the logged-in user's avatar button, which opens a dropdown with a Dashboard
+ * link and Sign Out button. Closes automatically when clicking anywhere outside the menu.
+ */
 const UserMenu = () => {
     const [open, setOpen] = useState(false)
     const menuRef = useRef(null)
@@ -11,6 +15,13 @@ const UserMenu = () => {
     const navigate = useNavigate()
 
     useEffect(() => {
+        /**
+         * Closes the dropdown when a click occurs outside of it
+         * 
+         * Listens on 'mousedown' rather than 'click' so this fires before the toggle button's
+         * own onClick handler, avoidng ambiguity between the two handlers reacting to the same
+         * physical click.
+         */
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setOpen(false)
@@ -21,6 +32,11 @@ const UserMenu = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
+    /**
+     * Logs the user out and closes the menu, then redirects home regardless of whether
+     * logout succeeds (a logout failure is rare and low-stakes so the user is sent home
+     * rather than shown an error).
+     */
     const handleLogout = async () => {
         setOpen(false)
         try {

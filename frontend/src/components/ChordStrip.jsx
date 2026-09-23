@@ -22,6 +22,13 @@ const STEP_WIDTH = CARD_WIDTH + CARD_GAP
 const TOTAL_WIDTH = CHORD_PREVIEWS.length * STEP_WIDTH
 const SPEED = 45 // pixels per second
 
+/**
+ * Purely decorative, auto-scrolling strip of chord diagrams for the landing page - not tied to any
+ * real user or song data.
+ * 
+ * Uses Framer Motion's useAnimationFrame for the scroll, since it needs frame-accurate control
+ * to compute which chord is "active" at any given moment, and to seamlessly loop the strip.
+ */
 const ChordStrip = () => {
     const containerRef = useRef(null)
     const [panelWidth, setPanelWidth] = useState(572)

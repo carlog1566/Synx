@@ -1,5 +1,13 @@
 import { Link } from 'react-router'
 
+/**
+ * Generic success/confirmation screen, reused across ForgotPasswordPage and ResetPasswordPage.
+ * 
+ * @param {string} title
+ * @param {string} [subText] - optional explanatory paragraph
+ * @param {string} text - link lable
+ * @param {string} path - route the link navigates to
+ */
 const Success = ({ title, subText=null, text, path }) => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">

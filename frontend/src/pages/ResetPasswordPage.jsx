@@ -4,6 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { authAPI } from '../services/auth'
 import Success from '../components/Success'
 
+/**
+ * Completes a password reset, reading uid/token from the URL and submitting a new password.
+ * 
+ * Password-mismatch is checked client-side before any network call, so an obviously invalid
+ * submission doesn't waste a request.
+ */
 const ResetPasswordPage = () => {    
     const { uid, token } = useParams()
     const [newPassword, setNewPassword] = useState('')
