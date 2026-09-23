@@ -17,6 +17,10 @@ const formatDuration = (seconds) => {
     return `${mins}:${paddedSecs}`;
 }
 
+/**
+ * Displays the user's song library as a grid, with an upload form above it. Handles chord analysis
+ * triggering and its resulting states (in-progress, failed) for each song independently.
+ */
 const SongListPage = () => {
     const [songs, setSongs] = useState([])
     const [loading, setLoading] = useState(true)
@@ -38,6 +42,11 @@ const SongListPage = () => {
         }
     }
 
+    /**
+     * Analyzes or re-analyzes a song. Tracked in analyzingIds (list) since multiple songs can be
+     * analyzing simultaneously, using a list lets each Song card independently show its own spinner
+     * without affecting others.
+     */
     const handleAnalyze = async (songId) => {
         console.log('Analyzing song:', songId)
         setAnalyzingIds(prev => [...prev, songId])
@@ -62,6 +71,10 @@ const SongListPage = () => {
         }
     }
 
+    /**
+     * Adds a newly uploaded song to the list immediately, then kicks off analysis automatically if
+     * it has an audio file, skips requiring a separate manual "Analyze" click after upload.
+     */
     const handleSongAdded = async (newSong) => {
         setSongs(prevSongs => [newSong, ...prevSongs])
 
