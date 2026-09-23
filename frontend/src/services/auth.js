@@ -1,5 +1,9 @@
 import { apiClient } from './api'
 
+/**
+ * API layer for authentication - wraps every auth-related backend endpoint. Used directly by
+ * AuthContext, which layers login-state management on top of these raw calls.
+ */
 export const authAPI = {
     register: async (username, password, email) => {
         return await apiClient.post('/auth/register/', { username, password, email })

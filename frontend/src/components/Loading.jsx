@@ -1,3 +1,7 @@
+/**
+ * Full-screen loading spinner, shown while a page's data is being fetched (e.g. SongDetailPage
+ * before the song loads).
+ */
 const Loading = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">

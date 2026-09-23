@@ -1,3 +1,8 @@
+/**
+ * Simple back-navigation bar for the SongDetailPage.
+ * 
+ * @param {Function} onNavigateBack - called when the back button is clicked.
+ */
 const SongDetailNav = ({ onNavigateBack }) => {
     return (
         <nav className="bg-white shadow-md border-b border-gray-200 rounded-lg">

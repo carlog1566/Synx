@@ -2,6 +2,12 @@ import {useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'rea
 import WaveSurfer from 'wavesurfer.js';
 import SpeedControl from './SpeedControl';
 
+/**
+ * Converts the songs total/current duration in seconds to a minutes:seconds format.
+ * 
+ * @param {number} seconds - the song's total duration or current duration in seconds
+ * @returns - formatted minutes and seconds
+ */
 const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.trunc(seconds % 60);
@@ -11,6 +17,19 @@ const formatDuration = (seconds) => {
     return `${mins}:${paddedSecs}`;
 }
 
+/**
+ * Wraps WaveSurfer.js to provide audio playback with a waveform visualization, play/pause, and
+ * speed control.
+ * 
+ * Exposes seekTo and stop imperatively via ref (useImperativeHandle), since the parent
+ * (SongDetailPage) needs to trigger seeking from outside this component (e.g. when a user clicks
+ * a chord in FretboardDisplay, seekTo lets that click control this player's playback position
+ * without lifting all of WaveSurfer's internal state up to the parent).
+ * 
+ * @param {string} audioUrl - the song's playable audio URL.
+ * @param {Function} onTimeUpdate - called with the current playback time on every audioprocess 
+ *  tick, so the parent can sync other components (like FretboardDisplay) to playback position.
+ */
 const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -21,6 +40,10 @@ const AudioPlayer = ({ ref, audioUrl, onTimeUpdate}) => {
     const wavesurfer = useRef(null);
 
     useImperativeHandle(ref, () => ({
+        /**
+         * Seeks playback to a specific time. WaveSurfer's own seek to() expects a 0-1 fraction 
+         * of total duration, not seconds, hence the division here.
+         */
         seekTo: (timeInSeconds) => {
             if (!wavesurfer.current) {
                 return

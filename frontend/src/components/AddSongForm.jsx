@@ -1,6 +1,16 @@
 import { useState } from 'react'
 import { songAPI } from '../services/api'
 
+/**
+ * Form for uploading a new song (title, artist, audio file).
+ * 
+ * The file input's key is set to a fresh Date.now() value after each successful submission,
+ * forcing React to remount the input and clear its displayed filename - file inputs can't be 
+ * reset by setting their value programmatically for security reasons, so remounting via a
+ * changed key is the standard workaround.
+ * 
+ * @param {Function} onSongAdded - called with the newly created song object on successful upload.
+ */
 function AddSongForm({ onSongAdded }) {
     const [formData, setFormData] = useState({
         title: '',

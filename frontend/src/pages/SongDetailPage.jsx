@@ -19,6 +19,17 @@ const formatDuration = (seconds) => {
     return `${mins}:${paddedSecs}`;
 }
 
+/**
+ * Displays a single song's audio player and interactive fretboard, fetching the song by id from the
+ * URL.
+ * 
+ * audioPlayerRef bridges FretboardDisplay's click-to-seek (handleSeek) to AudioPlayer's imperative
+ * seeTo(), FretboardDisplay has no direct access to the audio player so seeking is routed through
+ * this ref.
+ * 
+ * handleNavigateBack explicitly stops playback before navigating away, since WaveSurfer's audio
+ * would otherwise keep playing in the background.
+ */
 const SongDetailPage = () => {
     const { id } = useParams()
     const [loading, setLoading] = useState(true)

@@ -1,3 +1,11 @@
+/**
+ * Displays raw chord/position data for a song's tabs in a specific instrument, as a plain
+ * vertical list.
+ * 
+ * This is a fallback/debug view, FretboardDisplay is the actual interactive visualization used
+ * in the app. This component predates FretbardDisplay and is kept for cases where tabData exists
+ * but the interactive view isn't appropriate.
+ */
 const TabDisplay = ({ tabs, instrument }) => {
     if (!tabs) {
         return (

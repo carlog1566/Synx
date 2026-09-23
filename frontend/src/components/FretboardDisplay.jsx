@@ -1,4 +1,4 @@
-import { useRef, useEffect, act } from 'react'
+import { useRef, useEffect } from 'react'
 import ChordColumn from './ChordColumn'
 
 const CHORD_WIDTH = 80;
@@ -6,6 +6,20 @@ const STRING_SPACING = 30;
 const PADDING_LEFT = 40;
 const PADDING_TOP = 65;
 
+/**
+ * Renders the interactive, audio-synced guitar tab visualization
+ * 
+ * Displays every detected chord as a column in a horizontally scrollable SVG, auto-scrolling to
+ * keep the currently-playing chord centered, and animating a playhead line that smoothly
+ * interpolates between chord positions based on currentTime (rather than jumping discretely from
+ * chord to chord), see getPlayheadX.
+ * 
+ * @param {{time: number, chord: string, positions: Object}[]} tabData
+ * @param {number} totalTime - full song duration, for the time display
+ * @param {number} currentTime - current audio playback position
+ * @param {Function} formatDuration - formats seconds as M:SS
+ * @param {Function} onSeek - called with a timestamp when a chord column is clicked
+ */
 const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration, onSeek }) => {
     if (!tabData || tabData.length === 0) {
         return (
@@ -20,6 +34,10 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration, onS
     const total_height = (STRINGS.length * STRING_SPACING) + PADDING_TOP + 10;
     const scrollContainerRef = useRef(null);
 
+    /**
+     * Finds the index of the chord currently playing: the last chord whose time has passed, but
+     * before the next chord's time.
+     */
     const activeIndex = tabData.findIndex((chord, index) => {
         if ((currentTime >= 0) && (chord['time'] <= currentTime) && (!tabData[index + 1] || tabData[index + 1]['time'] > currentTime)) {
             return true
@@ -29,6 +47,11 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration, onS
     })
 
     useEffect(() => {
+        /**
+         * Auto-scrolls the fretboard so the active chord stays centered in the visible area as
+         * playback progresses.
+         */
+
         if (!scrollContainerRef.current || activeIndex === -1) {
             return
         }
@@ -44,6 +67,15 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration, onS
         })
     }, [activeIndex])
 
+    /**
+     * Calculates the playhead's horizontal position, linearly interpolated between the active chord
+     * and the next one based on how far through the current chord's time window playback has
+     * progressed. This makes the playhead glide continuously rather than jumping discretely each
+     * time activeIndex changes.
+     * 
+     * Falls back to a fixed position before playback starts (activeIndex === -1) and stays put on
+     * the last chord (no nextChord to interpolate toward).
+     */
     const getPlayheadX = () => {
         if (activeIndex === -1) {
             return CHORD_WIDTH - (CHORD_WIDTH / 2)

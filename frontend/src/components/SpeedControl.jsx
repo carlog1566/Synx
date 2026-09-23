@@ -1,5 +1,14 @@
 const SPEED_OPTIONS = [0.5, 0.75, 1.0, 1.25, 1.5, 2]
 
+/**
+ * Playback speed selector for AudioPlayer.
+ * 
+ * Renders as a row of buttons on desktop (md+) and a <select> dropdown on mobile, since a full
+ * button row doesn't fit comfortably on narrow screens.
+ * 
+ * @param {number} currentSpeed - the currently activate playback rate
+ * @param {Function} onSpeedChange - called with the new speed value
+ */
 const SpeedControl = ({ currentSpeed, onSpeedChange }) => {
     return (
         <div className="flex items-center gap-3">

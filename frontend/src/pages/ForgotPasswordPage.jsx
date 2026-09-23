@@ -4,6 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { authAPI } from '../services/auth'
 import Success from '../components/Success'
 
+/**
+ * Requests a password reset email for a given address.
+ * 
+ * Always shows the same "check your email" confirmation regardless if the backend actually found
+ * a matching account.
+ */
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('')
     const [submitting, setSubmitting] = useState(false)

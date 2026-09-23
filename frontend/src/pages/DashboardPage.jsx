@@ -4,6 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { authAPI } from '../services/auth'
 
+/**
+ * Account management page: profile info, password change/set, account creation date, song library
+ * stats, and account deletion.
+ * 
+ * Adapts its password section between "change" and "set" modes based on user.has_password, Google
+ * only users have no usable password so they get a different form to set a password rather than
+ * changing a password. Account deletion is similar where accounts with passwords confirm deletion
+ * via their password while Google only users that have no usable password have to type "DELETE".
+ */
 const DashboardPage = () => {
     const [stats, setStats] = useState(null)
 
@@ -24,6 +33,10 @@ const DashboardPage = () => {
     const navigate = useNavigate()
 
     useEffect (() => {
+        /**
+         * Fetches song stats on mount. Failures are silently ignored due to the low-stakes. The
+         * section stays on "Loading..." if this fails.
+         */
         const fetchStats = async() => {
             try {
                 const response = await authAPI.getStats()
@@ -69,6 +82,12 @@ const DashboardPage = () => {
         }
     }
 
+    /**
+     * Deletes the account, then syncs local state via clearUser() rather than calling the full
+     * logout() flow. The backend already clears auth cookies as part of the same deleteAccount()
+     * request so a separate logout() call would be redundant and an unecessary second network
+     * request.
+     */
     const handleDeleteAccount = async () => {
         setDeleteError(null)
         setDeleting(true)

@@ -12,6 +12,14 @@ import DashboardPage from './pages/DashboardPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 
+/**
+ * Root component: sets up routing, auth context, and a dynamic navbar-height padding system.
+ * 
+ * navHeight is measured live via ResizeObserver oon the header, since th header's height 
+ * changes when the mobile menu open/closes or login state changes its contents. The auth pages
+ * use navHeight along as padding so that they stay correctly centered rather than stacking 
+ * paddings that have already been consumed.
+ */
 function App() {
 	const [menuOpen, setMenuOpen] = useState(false)
 	const navRef = useRef(null)
