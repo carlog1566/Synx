@@ -4,6 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { GoogleLogin } from '@react-oauth/google'
 
+/**
+ * New account creation, via traditional credentials or Google.
+ * 
+ * Traditional registration calls register() from AuthContext which auto-logs the user in
+ * immediately after account creation, matching how Google sign-in works.
+ */
 const RegisterPage = () => {
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
