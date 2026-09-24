@@ -1,12 +1,14 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
+from unittest.mock import patch
 from rest_framework import status
 
+@patch('api.views.RegisterView.throttle_classes', [])
 class RegisterViewTest(TestCase):
     def setUp(self):
         """
         Runs before every test method in this class. Creates one existing user that the duplicate-
-        username/email tests can reuse, so each of those tests dooesn't need to repeat the same setup
+        username/email tests can reuse, so each of those tests doesn't need to repeat the same setup
         code.
         """
         self.existing_user = User.objects.create_user(
@@ -44,7 +46,7 @@ class RegisterViewTest(TestCase):
         email = 'myemail3@email.com'
 
         # Act
-        response = self.client.post('/api/auth/register', {
+        response = self.client.post('/api/auth/register/', {
             'username': username,
             'password': password,
             'email': email
@@ -54,13 +56,61 @@ class RegisterViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_register_missing_username_returns_400(self):
-        pass
+        """
+        Verifies that registration without a username responds with 400 bad request.
+        """
+        # Arrange
+        username = ''
+        password = 'MyPassword123!'
+        email = 'myemail4@email.com'
+
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_missing_password_returns_400(self):
-        pass
+        """
+        Verifies that registration without a password responds with 400 bad request.
+        """
+        # Arrange
+        username = 'johndoe4'
+        password = ''
+        email = 'myemail5@email.com'
+
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_missing_email_returns_400(self):
-        pass
+        """
+        Verifies that registration without an email responds with 400 bad request.
+        """
+        # Arrange
+        username = 'johndoe5'
+        password = 'myPassword123!'
+        email = ''
+
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_duplicate_username_returns_400(self):
         pass
@@ -77,5 +127,7 @@ class RegisterViewTest(TestCase):
     def test_register_success_sets_refresh_token_cookie(self):
         pass
 
+
+class RegisterThrottleTest(TestCase):
     def test_register_throttled_after_limit(self):
         pass
