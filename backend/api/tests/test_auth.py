@@ -116,7 +116,6 @@ class RegisterViewTest(TestCase):
         """
         Verifies that registration with an username that already exists responds with 400 bad request.
         """
-
         # Arrange
         username = 'existing'
         password = 'MyPassword123!'
@@ -136,7 +135,6 @@ class RegisterViewTest(TestCase):
         """
         Verifies that registration with an email that already exists responds with 400 bad request.
         """
-
         # Arrange
         username = 'johndoe6'
         password = 'myPassword123!'
@@ -157,7 +155,6 @@ class RegisterViewTest(TestCase):
         Verifies that registration with a password that doesn't meet Django's password validation
         requirements returns a 400 bad request.
         """
-
         # Arrange
         username = 'johndoe7'
         password = 'test'
@@ -178,7 +175,6 @@ class RegisterViewTest(TestCase):
         Verfies that successful registration logs the user in immediately by setting the access_token
         cookie.
         """
-
         # Arrange
         username = 'johndoe8'
         password = 'MyPassword123!'
@@ -199,7 +195,6 @@ class RegisterViewTest(TestCase):
         Verifies that successful registration also sets refresh_token, the second half of the cookie
         pair.
         """
-
         # Arrange 
         username = 'johndoe9'
         password = 'MyPassword123!'
@@ -222,7 +217,6 @@ class RegisterThrottleTest(TestCase):
         Verifies that the 5th registration attempt from the same client within an hour should be
         rejected with 429. 
         """
-
         # Arrange & Act
         for i in range(4):
             response = self.client.post('/api/auth/register/', {
@@ -240,3 +234,54 @@ class RegisterThrottleTest(TestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+
+class CookieTokenObtainPairViewTest(TestCase):
+    def setUp(self):
+        """
+        Runs before every test method in this class. Creates one existing user that login tests can 
+        reuse, so each of those tests doesn't need to repeat the same setup code.
+        """
+        self.existing_user = User.objects.create_user(
+            username='existingUser',
+            password='MyPassword123!',
+            email='existinguser@email.com'
+        )
+
+    def test_login_success_sets_access_token_cookie(self):
+        """
+        Verifies that a successful login logs the user immediately by setting the access_token cookie.
+        """
+        # Arrange
+        username = 'existingUser'
+        password = 'MyPassword123!'
+        email = 'existinguser@email.com'
+
+        # Act
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Arrange
+        self.assertIn('access_token', response.cookies)
+
+    def test_login_success_sets_refresh_token_cookie(self):
+        """
+        Verifies that a successful login also sets the refresh_token, the second half of the cookie.
+        """
+        # Arrange
+        username = 'existingUser'
+        password = 'MyPassword123!'
+        email = 'existinguser@email.com'
+
+        # Act
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertIn('refresh_token', response.cookies)
