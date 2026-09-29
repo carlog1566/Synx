@@ -174,10 +174,46 @@ class RegisterViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_success_sets_access_token_cookie(self):
-        pass
+        """
+        Verfies that successful registration logs the user in immediately by setting the access_token
+        cookie.
+        """
+
+        # Arrange
+        username = 'johndoe8'
+        password = 'MyPassword123!'
+        email = 'myemail8@email.com'
+
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertIn('access_token', response.cookies)
 
     def test_register_success_sets_refresh_token_cookie(self):
-        pass
+        """
+        Verifies that successful registration also sets refresh_token, the second half of the cookie
+        pair.
+        """
+
+        # Arrange 
+        username = 'johndoe9'
+        password = 'MyPassword123!'
+        email = 'myemail9@email.com'
+
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertIn('refresh_token', response.cookies)
 
 
 class RegisterThrottleTest(TestCase):
