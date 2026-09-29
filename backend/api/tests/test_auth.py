@@ -113,13 +113,65 @@ class RegisterViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_duplicate_username_returns_400(self):
-        pass
+        """
+        Verifies that registration with an username that already exists responds with 400 bad request.
+        """
+
+        # Arrange
+        username = 'existing'
+        password = 'MyPassword123!'
+        email = 'myemail6@email.com'
+
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_duplicate_email_returns_400(self):
-        pass
+        """
+        Verifies that registration with an email that already exists responds with 400 bad request.
+        """
+
+        # Arrange
+        username = 'johndoe6'
+        password = 'myPassword123!'
+        email = 'existing@test.com'
+        
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_weak_password_returns_400(self):
-        pass
+        """
+        Verifies that registration with a password that doesn't meet Django's password validation
+        requirements returns a 400 bad request.
+        """
+
+        # Arrange
+        username = 'johndoe7'
+        password = 'test'
+        email = 'myemail7@email.com'
+
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': username,
+            'password': password,
+            'email': email
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_success_sets_access_token_cookie(self):
         pass
