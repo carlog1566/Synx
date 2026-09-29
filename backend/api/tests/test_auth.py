@@ -218,4 +218,25 @@ class RegisterViewTest(TestCase):
 
 class RegisterThrottleTest(TestCase):
     def test_register_throttled_after_limit(self):
-        pass
+        """
+        Verifies that the 5th registration attempt from the same client within an hour should be
+        rejected with 429. 
+        """
+
+        # Arrange & Act
+        for i in range(4):
+            response = self.client.post('/api/auth/register/', {
+                'username': f'throttletest{i}',
+                'password': '',
+                'email': f'throttletest{i}@email.com'
+            })
+
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        response = self.client.post('/api/auth/register/', {
+            'username': 'throttletest5',
+            'password': 'MyPassword123!',
+            'email': 'throttletest5@email.com'
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
