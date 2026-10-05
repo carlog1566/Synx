@@ -256,17 +256,15 @@ class CookieTokenObtainPairViewTest(TestCase):
         # Arrange
         username = 'existingUser'
         password = 'MyPassword123!'
-        email = 'existinguser@email.com'
 
         # Act
         response = self.client.post('/api/auth/login/', {
             'username': username,
             'password': password,
-            'email': email
         })
 
         # Arrange
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access_token', response.cookies)
         self.assertIn('refresh_token', response.cookies)
 
@@ -278,9 +276,9 @@ class LogoutViewTest(TestCase):
         reuse, so each of the tests don't need to repeat the same code.
         """
         self.existing_user = User.objects.create_user(
-            username='existingUser1',
+            username='existingUser',
             password='myPassword123!',
-            email='existinguser1@gmail.com'
+            email='existinguser@email.com'
         )
 
     def test_authenticated_logout_deletes_auth_cookie(self):
@@ -289,14 +287,12 @@ class LogoutViewTest(TestCase):
         access_token and refresh_token, and returns 200 OK.
         """
         # Arrange & Act
-        username = 'existingUser1'
+        username = 'existingUser'
         password = 'myPassword123!'
-        email = 'existinguser1@gmail.com'
 
         response = self.client.post('/api/auth/login/', {
             'username': username,
             'password': password,
-            'email': email
         })
 
         self.assertEqual(response.status_code, 200)
@@ -307,9 +303,9 @@ class LogoutViewTest(TestCase):
         response = self.client.post('/api/auth/logout/')
 
         # Assert
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.cookies['access_token']['max-age'], '0')
-        self.assertEqual(response.cookies['refresh_token']['max-age'], '0')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.cookies['access_token']['max-age'], 0)
+        self.assertEqual(response.cookies['refresh_token']['max-age'], 0)
 
     def test_unauthenticated_logout_returns_200(self):
         """
@@ -319,4 +315,54 @@ class LogoutViewTest(TestCase):
         response = self.client.post('/api/auth/logout/')
 
         # Assert
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class MeViewTest(TestCase):
+    def setUp(self):
+        """
+        Runs before every test method in this class. Creates one existing user that the MeView tests can
+        reuse, so each of the tests don't need to repeat the same code.
+        """
+        self.existing_user = User.objects.create_user(
+            username='existingUser',
+            password='myPassword123!',
+            email='existinguser@email.com'
+        )
+
+    def test_me_authenticated_returns_user_info(self):
+        """
+        Verifies that an authenticated user can retrieve their username, email, date joined, and whether
+        they have a usable password.
+        """
+        # Arrange & Act
+        username = 'existingUser'
+        password = 'myPassword123!'
+        email = 'existinguser@email.com'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.get('/api/auth/me/')
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], username)
+        self.assertEqual(response.data['email'], email)
+        self.assertEqual(response.data['date_joined'], self.existing_user.date_joined)
+        self.assertTrue(response.data['has_password'])
+
+    def test_me_unauthenticated_returns_401(self):
+        """
+        Verifies that an unauthenticated user cannot access the current user's information.
+        """
+        # Arrange & Act
+        response = self.client.get('/api/auth/me/')
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
