@@ -250,7 +250,8 @@ class CookieTokenObtainPairViewTest(TestCase):
 
     def test_login_success_sets_access_token_cookie(self):
         """
-        Verifies that a successful login logs the user immediately by setting the access_token cookie.
+        Verifies that a successful login logs the user immediately by setting both cookies, access_token
+        and refresh_token, and returns 200 OK.
         """
         # Arrange
         username = 'existingUser'
@@ -265,23 +266,57 @@ class CookieTokenObtainPairViewTest(TestCase):
         })
 
         # Arrange
+        self.assertEqual(response.status_code, 200)
         self.assertIn('access_token', response.cookies)
+        self.assertIn('refresh_token', response.cookies)
 
-    def test_login_success_sets_refresh_token_cookie(self):
-        """
-        Verifies that a successful login also sets the refresh_token, the second half of the cookie.
-        """
-        # Arrange
-        username = 'existingUser'
-        password = 'MyPassword123!'
-        email = 'existinguser@email.com'
 
-        # Act
+class LogoutViewTest(TestCase):
+    def setUp(self):
+        """
+        Runs before every test method in this class. Creates one existing user that the logout tests can
+        reuse, so each of the tests don't need to repeat the same code.
+        """
+        self.existing_user = User.objects.create_user(
+            username='existingUser1',
+            password='myPassword123!',
+            email='existinguser1@gmail.com'
+        )
+
+    def test_authenticated_logout_deletes_auth_cookie(self):
+        """
+        Verifies that a successful logout by an authenticated user immediately deletes both auth cookies,
+        access_token and refresh_token, and returns 200 OK.
+        """
+        # Arrange & Act
+        username = 'existingUser1'
+        password = 'myPassword123!'
+        email = 'existinguser1@gmail.com'
+
         response = self.client.post('/api/auth/login/', {
             'username': username,
             'password': password,
             'email': email
         })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('access_token', response.cookies)
+        self.assertIn('refresh_token', response.cookies)
+
+        # Act
+        response = self.client.post('/api/auth/logout/')
 
         # Assert
-        self.assertIn('refresh_token', response.cookies)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.cookies['access_token']['max-age'], '0')
+        self.assertEqual(response.cookies['refresh_token']['max-age'], '0')
+
+    def test_unauthenticated_logout_returns_200(self):
+        """
+        Verifies that a logout done by an unauthenticated user will still return a 200 OK.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/logout/')
+
+        # Assert
+        self.assertEqual(response.status_code, 200)
