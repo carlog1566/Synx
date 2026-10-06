@@ -318,6 +318,11 @@ class LogoutViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
+class GoogleLoginViewTest(TestCase):
+    def setUp(self):
+        pass
+
+
 class MeViewTest(TestCase):
     def setUp(self):
         """
@@ -366,3 +371,23 @@ class MeViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class ForgotPasswordViewTest(TestCase):
+    def setUp(self):
+        pass
+
+
+class ResetPasswordConfirmViewTest(TestCase):
+    def setUp(self):
+        pass
+
+
+class ChangePasswordViewTest(TestCase):
+    def setUp(self):
+        pass
+
+
+def DeleteAccountViewTest(TestCase):
+    def setUp(self):
+        pass
