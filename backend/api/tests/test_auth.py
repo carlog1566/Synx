@@ -385,7 +385,44 @@ class ResetPasswordConfirmViewTest(TestCase):
 
 class ChangePasswordViewTest(TestCase):
     def setUp(self):
-        pass
+        """
+        Runs before every test method in this class. Creates one existing user that the change password 
+        tests can reuse, so each of the tests don't need to repeat the same code.
+        """
+        self.existing_user = User.objects.create_user(
+            username='existinguser',
+            password='myPassword123!',
+            email='existinguser@email.com'
+        )
+
+    def test_successful_change_password_with_usable_password_changes_password(self):
+        """
+        Verifies that when an authenticated user with a usuable password changes their password, the 
+        password is actually changed
+        """
+        # Arange
+        username = 'existinguser'
+        password = 'myPassword123!'
+        new_password = 'myNewPassword123!'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': password,
+            'new_password': new_password,
+            'confirm_password': new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.existing_user.refresh_from_db()
+        self.assertTrue(self.existing_user.check_password(new_password))
 
 
 def DeleteAccountViewTest(TestCase):
