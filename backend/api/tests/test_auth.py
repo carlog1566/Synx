@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from unittest.mock import patch
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 @patch('api.views.RegisterView.throttle_classes', [])
 class RegisterViewTest(TestCase):
@@ -388,8 +389,8 @@ class ResetPasswordConfirmViewTest(TestCase):
 class ChangePasswordViewTest(TestCase):
     def setUp(self):
         """
-        Runs before every test method in this class. Creates one existing user that the change password 
-        tests can reuse, so each of the tests don't need to repeat the same code.
+        Runs before every test method in this class. Creates one existing user and one google user 
+        that the change password tests can reuse, so each of the tests don't need to repeat the same code.
         """
         self.existing_user = User.objects.create_user(
             username='existinguser',
@@ -397,12 +398,19 @@ class ChangePasswordViewTest(TestCase):
             email='existinguser@email.com'
         )
 
+        self.google_user = User.objects.create_user(
+            username='googleuser',
+            email='googleuser@email.com'
+        )
+        self.google_user.set_unusable_password()
+        self.google_user.save()
+
     def test_successful_change_password_with_usable_password_changes_password(self):
         """
         Verifies that when an authenticated user with a usuable password changes their password, the 
         password is actually changed
         """
-        # Arange
+        # Arrange
         username = 'existinguser'
         password = 'myPassword123!'
         new_password = 'myNewPassword123!'
@@ -426,6 +434,231 @@ class ChangePasswordViewTest(TestCase):
         self.existing_user.refresh_from_db()
         self.assertTrue(self.existing_user.check_password(new_password))
 
+    def test_change_password_with_incorrect_current_password_returns_400(self):
+        """
+        Verifies that when an authenticated user with a usable password tries to change their 
+        password with the incorrect current password, it will return 400 bad request.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+        wrong_password = 'wrongPassword123!'
+        new_password = 'myNewPassword123!'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Act
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': wrong_password,
+            'new_password': new_password,
+            'confirm_password': new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_change_password_without_current_password_returns_400(self):
+        """
+        Verifies that when an authenticated user with a usable password tries to change their 
+        password without a current_password, it will return 400 bad request.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+        wrong_password = ''
+        new_password = 'myNewPassword123!'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Act
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': wrong_password,
+            'new_password': new_password,
+            'confirm_password': new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_change_password_with_mismatched_passwords_returns_400(self):
+        """
+        Verifies that when an authenticated user with a usable password tries to change their 
+        password, if the new and confrim passwords don't match, it will return 400 bad request.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+        new_password = 'myNewPassword123!'
+        confirm_password = 'notMyNewPassword123!'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Act
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': password,
+            'new_password': new_password,
+            'confirm_password': confirm_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_change_password_with_weak_new_password_returns_400(self):
+        """
+        Verifies that when an authenticated user with a usable password tries to change their 
+        password, if the new password doesn't meet Django's password validation requirements 
+        it returns a 400 bad request.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+        new_password = 'pass'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Act
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': password,
+            'new_password': new_password,
+            'confirm_password': new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_change_password_with_unauthenticated_user_returns_401(self):
+        """
+        Verifies that if an unauthenticated user attempts to change password, it will return
+        401 unauthorized
+        """
+        # Arrange
+        current_password = 'myPassword123!'
+        new_password = 'myNewPassword123!'
+
+        # Act
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': current_password,
+            'new_password': new_password,
+            'confirm_password': new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_change_password_for_user_with_unusable_password_succeeds(self):
+        """
+        Verifies that users with an unusable password (google users) are able to create a 
+        working password via change password
+        """
+        # Arrange
+        new_password = 'myNewPassword123!'
+        refresh = RefreshToken.for_user(self.google_user)
+        access_token = refresh.access_token
+        self.client.cookies['access_token'] = str(access_token)
+
+        # Act
+        response = self.client.post('/api/auth/change-password/', {
+            'new_password': new_password,
+            'confirm_password': new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.google_user.refresh_from_db()
+        self.assertTrue(self.google_user.has_usable_password())
+        self.assertTrue(self.google_user.check_password(new_password))
+
+    def test_change_password_old_password_no_longer_works(self):
+        """
+        Verifies that when users change their password, their old password no longer works.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+        new_password = 'myNewPassword123!'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': password,
+            'new_password': new_password,
+            'confirm_password': new_password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.existing_user.refresh_from_db()
+        self.assertTrue(self.existing_user.check_password(new_password))
+
+
+        # Act
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_change_password_new_password_can_be_used_to_login(self):
+        """
+        Verifies that when users change their password, their new password works and can be used to login.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+        new_password = 'myNewPassword123!'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': password,
+            'new_password': new_password,
+            'confirm_password': new_password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.existing_user.refresh_from_db()
+        self.assertTrue(self.existing_user.check_password(new_password))
+
+
+        # Act
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class DeleteAccountViewTest(TestCase):
     def setUp(self):
