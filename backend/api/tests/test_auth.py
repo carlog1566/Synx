@@ -217,7 +217,7 @@ class RegisterThrottleTest(TestCase):
         Verifies that the 5th registration attempt from the same client within an hour should be
         rejected with 429. 
         """
-        # Arrange & Act
+        # Arrange
         for i in range(4):
             response = self.client.post('/api/auth/register/', {
                 'username': f'throttletest{i}',
@@ -227,12 +227,14 @@ class RegisterThrottleTest(TestCase):
 
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         
+        # Act
         response = self.client.post('/api/auth/register/', {
             'username': 'throttletest5',
             'password': 'MyPassword123!',
             'email': 'throttletest5@email.com'
         })
 
+        # Assert
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
 
@@ -286,7 +288,7 @@ class LogoutViewTest(TestCase):
         Verifies that a successful logout by an authenticated user immediately deletes both auth cookies,
         access_token and refresh_token, and returns 200 OK.
         """
-        # Arrange & Act
+        # Arrange
         username = 'existingUser'
         password = 'myPassword123!'
 
@@ -311,7 +313,7 @@ class LogoutViewTest(TestCase):
         """
         Verifies that a logout done by an unauthenticated user will still return a 200 OK.
         """
-        # Arrange & Act
+        # Arrange
         response = self.client.post('/api/auth/logout/')
 
         # Assert
@@ -340,7 +342,7 @@ class MeViewTest(TestCase):
         Verifies that an authenticated user can retrieve their username, email, date joined, and whether
         they have a usable password.
         """
-        # Arrange & Act
+        # Arrange
         username = 'existingUser'
         password = 'myPassword123!'
         email = 'existinguser@email.com'
@@ -425,6 +427,6 @@ class ChangePasswordViewTest(TestCase):
         self.assertTrue(self.existing_user.check_password(new_password))
 
 
-def DeleteAccountViewTest(TestCase):
+class DeleteAccountViewTest(TestCase):
     def setUp(self):
         pass
