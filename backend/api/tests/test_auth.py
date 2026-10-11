@@ -55,6 +55,8 @@ class RegisterViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['message'], 'User created successfully')
+        self.assertEqual(response.data['username'], username)
 
     def test_register_missing_username_returns_400(self):
         """
@@ -74,6 +76,7 @@ class RegisterViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Username, password, and email are required')
 
     def test_register_missing_password_returns_400(self):
         """
@@ -93,6 +96,7 @@ class RegisterViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Username, password, and email are required')
 
     def test_register_missing_email_returns_400(self):
         """
@@ -112,6 +116,7 @@ class RegisterViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Username, password, and email are required')
 
     def test_register_duplicate_username_returns_400(self):
         """
@@ -131,6 +136,7 @@ class RegisterViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Username already taken')
 
     def test_register_duplicate_email_returns_400(self):
         """
@@ -150,6 +156,7 @@ class RegisterViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'An account with this email already exists')
 
     def test_register_weak_password_returns_400(self):
         """
@@ -190,6 +197,9 @@ class RegisterViewTest(TestCase):
 
         # Assert
         self.assertIn('access_token', response.cookies)
+        self.assertEqual(response.data['message'], 'User created successfully')
+        self.assertEqual(response.data['username'], username)
+        
 
     def test_register_success_sets_refresh_token_cookie(self):
         """
@@ -210,6 +220,8 @@ class RegisterViewTest(TestCase):
 
         # Assert
         self.assertIn('refresh_token', response.cookies)
+        self.assertEqual(response.data['message'], 'User created successfully')
+        self.assertEqual(response.data['username'], username)
 
 
 class RegisterThrottleTest(TestCase):
@@ -270,6 +282,7 @@ class CookieTokenObtainPairViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access_token', response.cookies)
         self.assertIn('refresh_token', response.cookies)
+        self.assertEqual(response.data['message'], 'Login Successful')
 
 
 class LogoutViewTest(TestCase):
@@ -309,6 +322,7 @@ class LogoutViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.cookies['access_token']['max-age'], 0)
         self.assertEqual(response.cookies['refresh_token']['max-age'], 0)
+        self.assertEqual(response.data['message'], 'Logged out successfully')
 
     def test_unauthenticated_logout_returns_200(self):
         """
@@ -319,6 +333,7 @@ class LogoutViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'Logged out successfully')
 
 
 class GoogleLoginViewTest(TestCase):
@@ -433,6 +448,7 @@ class ChangePasswordViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.existing_user.refresh_from_db()
         self.assertTrue(self.existing_user.check_password(new_password))
+        self.assertEqual(response.data['message'], 'Password changed successfully')
 
     def test_change_password_with_incorrect_current_password_returns_400(self):
         """
@@ -461,6 +477,7 @@ class ChangePasswordViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Current password is incorrect')
 
     def test_change_password_without_current_password_returns_400(self):
         """
@@ -489,6 +506,7 @@ class ChangePasswordViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Current password is required')
 
     def test_change_password_with_mismatched_passwords_returns_400(self):
         """
@@ -517,6 +535,7 @@ class ChangePasswordViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Passwords do not match')
 
     def test_change_password_with_weak_new_password_returns_400(self):
         """
@@ -587,6 +606,7 @@ class ChangePasswordViewTest(TestCase):
         self.google_user.refresh_from_db()
         self.assertTrue(self.google_user.has_usable_password())
         self.assertTrue(self.google_user.check_password(new_password))
+        self.assertEqual(response.data['message'], 'Password created successfully')
 
     def test_change_password_old_password_no_longer_works(self):
         """
@@ -662,4 +682,71 @@ class ChangePasswordViewTest(TestCase):
 
 class DeleteAccountViewTest(TestCase):
     def setUp(self):
-        pass
+        """
+        Runs before every test method in this class. Creates one existing user and one google user 
+        that the change password tests can reuse, so each of the tests don't need to repeat the same code.
+        """
+        self.existing_user = User.objects.create_user(
+            username='existinguser',
+            password='myPassword123!',
+            email='existinguser@email.com'
+        )
+
+        self.google_user = User.objects.create_user(
+            username='googleuser',
+            email='googleuser@email.com'
+        )
+        self.google_user.set_unusable_password()
+        self.google_user.save()
+
+    def test_delete_existing_account_with_usable_password_success_deletes_account(self):
+        """
+        Verifies than an authenticated user with a usable password can delete their account.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.post('/api/auth/delete-account/', {
+            'password': password,
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(User.objects.filter(username=username).exists())
+        self.assertEqual(response.data['message'], 'Account deleted successfully')
+
+    def test_delete_existing_account_with_usable_password_success_clears_auth_cookies(self):
+        """
+        Verifies that when an authenticated user with a usable password successfully deletes their account,
+        their auth cookies, refresh & access, are cleared.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.post('/api/auth/delete-account/', {
+            'password': password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.cookies['access_token']['max-age'], 0)
+        self.assertEqual(response.cookies['refresh_token']['max-age'], 0)
+        
