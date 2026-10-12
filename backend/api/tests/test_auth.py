@@ -280,7 +280,177 @@ class LogoutViewTest(TestCase):
 
 class GoogleLoginViewTest(TestCase):
     def setUp(self):
-        pass
+        """
+        Runs before every test method. Creates an existing user to test Google login
+        when an account with the same email already exists.
+        """
+        self.existing_user = User.objects.create_user(
+            username='existinguser',
+            password='myPassword123!',
+            email='existinguser@email.com'
+        )
+
+        self.google_email = 'googleuser@gmail.com'
+        self.google_username = 'googleuser'
+        self.credential = 'mock-google-id-token'
+
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_with_new_user_creates_account(self, mock_verify):
+        """
+        Verifies that successful Google login creates a new user with an unusable password.
+        """
+        # Arrange
+        mock_verify.return_value = {
+            'email': self.google_email,
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(User.objects.filter(email=self.google_email).exists())
+
+        google_user = User.objects.get(email=self.google_email)
+        self.assertEqual(google_user.username, self.google_username)
+        self.assertFalse(google_user.has_usable_password())
+
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_with_existing_user_does_not_create_duplicate(self, mock_verify):
+        """
+        Verifies that Google login reuses an existing account with the same email.
+        """
+        # Arrange
+        mock_verify.return_value = {
+            'email': self.existing_user.email,
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            User.objects.filter(email=self.existing_user.email).count(),
+            1
+        )
+
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_success_returns_message(self, mock_verify):
+        """
+        Verifies that successful Google login returns the expected success message.
+        """
+        # Arrange
+        mock_verify.return_value = {
+            'email': self.google_email,
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'Login successful')
+
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_success_sets_access_token_cookie(self, mock_verify):
+        """
+        Verifies that successful Google login sets the access token cookie.
+        """
+        # Arrange
+        mock_verify.return_value = {
+            'email': self.google_email,
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access_token', response.cookies)
+        self.assertTrue(response.cookies['access_token'].value)
+
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_success_sets_refresh_token_cookie(self, mock_verify):
+        """
+        Verifies that successful Google login sets the refresh token cookie.
+        """
+        # Arrange
+        mock_verify.return_value = {
+            'email': self.google_email,
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('refresh_token', response.cookies)
+        self.assertTrue(response.cookies['refresh_token'].value)
+
+    def test_google_login_without_credential_returns_400(self):
+        """
+        Verifies that Google login returns a 400 response when no credential is provided.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/google/', {})
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'No crednetial provided')
+
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_with_invalid_token_returns_400(self, mock_verify):
+        """
+        Verifies that Google login returns a 400 response when the ID token is invalid.
+        """
+        # Arrange
+        mock_verify.side_effect = ValueError
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Invalid Google toekn')
+
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_with_unverified_email_returns_400(self, mock_verify):
+        """
+        Verifies that Google login rejects an account whose email is not verified.
+        """
+        # Arrange
+        mock_verify.return_value = {
+            'email': self.google_email,
+            'email_verified': False
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Google email not verified')
+
 
 class MeViewTest(TestCase):
     def setUp(self):
