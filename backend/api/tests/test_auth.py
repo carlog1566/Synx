@@ -12,66 +12,59 @@ class RegisterViewTest(TestCase):
         username/email tests can reuse, so each of those tests doesn't need to repeat the same setup
         code.
         """
+        self.existing_username = 'existinguser'
+        self.existing_password = 'myPassword123!'
+        self.existing_email = 'existinguser@email.com'
+
+        self.new_username = 'newuser'
+        self.new_password = 'newPassword123!'
+        self.new_email = 'newuser@email.com'
+
         self.existing_user = User.objects.create_user(
-            username='existing',
-            password='SecurePass123!',
-            email='existing@test.com'
+            username=self.existing_username,
+            password=self.existing_password,
+            email=self.existing_email
         )
 
     def test_register_success_creates_user(self):
         """
         Verifies that a successful registration saves a new User row to the database.
         """
-        # Arrange
-        username = 'johndoe2'
-        password = 'MyPassword123!'
-        email = 'myemail@email.com'
-
-        # Act
+        # Arrange & Act
         self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email,
+            'username': self.new_username,
+            'password': self.new_password,
+            'email': self.new_email,
         })
 
         # Assert
-        self.assertTrue(User.objects.filter(username=username).exists())
+        self.assertTrue(User.objects.filter(username=self.new_username).exists())
 
     def test_register_success_returns_201(self):
         """
         Verifies that a successful registration responds with 201 created.
         """
-        # Arrange
-        username = 'johndoe3'
-        password = 'MyPassword123!'
-        email = 'myemail3@email.com'
-
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
+            'username': self.new_username,
+            'password': self.new_password,
+            'email': self.new_email,
         })
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['message'], 'User created successfully')
-        self.assertEqual(response.data['username'], username)
+        self.assertEqual(response.data['username'], self.new_username)
 
     def test_register_missing_username_returns_400(self):
         """
         Verifies that registration without a username responds with 400 bad request.
         """
-        # Arrange
-        username = ''
-        password = 'MyPassword123!'
-        email = 'myemail4@email.com'
-
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
+            'username': '',
+            'password': self.new_password,
+            'email': self.new_email,
         })
 
         # Assert
@@ -82,16 +75,11 @@ class RegisterViewTest(TestCase):
         """
         Verifies that registration without a password responds with 400 bad request.
         """
-        # Arrange
-        username = 'johndoe4'
-        password = ''
-        email = 'myemail5@email.com'
-
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
+            'username': self.new_username,
+            'password': '',
+            'email': self.new_email,
         })
 
         # Assert
@@ -102,16 +90,11 @@ class RegisterViewTest(TestCase):
         """
         Verifies that registration without an email responds with 400 bad request.
         """
-        # Arrange
-        username = 'johndoe5'
-        password = 'myPassword123!'
-        email = ''
-
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
+            'username': self.new_username,
+            'password': self.new_password,
+            'email': '',
         })
 
         # Assert
@@ -122,16 +105,11 @@ class RegisterViewTest(TestCase):
         """
         Verifies that registration with an username that already exists responds with 400 bad request.
         """
-        # Arrange
-        username = 'existing'
-        password = 'MyPassword123!'
-        email = 'myemail6@email.com'
-
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
+            'username': self.existing_username,
+            'password': self.new_password,
+            'email': self.new_email,
         })
 
         # Assert
@@ -142,16 +120,11 @@ class RegisterViewTest(TestCase):
         """
         Verifies that registration with an email that already exists responds with 400 bad request.
         """
-        # Arrange
-        username = 'johndoe6'
-        password = 'myPassword123!'
-        email = 'existing@test.com'
-        
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
+            'username': self.new_username,
+            'password': self.new_password,
+            'email': self.existing_email,
         })
 
         # Assert
@@ -163,65 +136,33 @@ class RegisterViewTest(TestCase):
         Verifies that registration with a password that doesn't meet Django's password validation
         requirements returns a 400 bad request.
         """
-        # Arrange
-        username = 'johndoe7'
-        password = 'test'
-        email = 'myemail7@email.com'
-
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
+            'username': self.new_username,
+            'password': 'weak',
+            'email': self.new_email,
         })
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_register_success_sets_access_token_cookie(self):
+    def test_register_success_sets_auth_cookie(self):
         """
-        Verfies that successful registration logs the user in immediately by setting the access_token
+        Verifies that successful registration logs the user in immediately by setting the access_token
         cookie.
         """
-        # Arrange
-        username = 'johndoe8'
-        password = 'MyPassword123!'
-        email = 'myemail8@email.com'
-
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
+            'username': self.new_username,
+            'password': self.new_password,
+            'email': self.new_email,
         })
 
         # Assert
         self.assertIn('access_token', response.cookies)
-        self.assertEqual(response.data['message'], 'User created successfully')
-        self.assertEqual(response.data['username'], username)
-        
-
-    def test_register_success_sets_refresh_token_cookie(self):
-        """
-        Verifies that successful registration also sets refresh_token, the second half of the cookie
-        pair.
-        """
-        # Arrange 
-        username = 'johndoe9'
-        password = 'MyPassword123!'
-        email = 'myemail9@email.com'
-
-        # Act
-        response = self.client.post('/api/auth/register/', {
-            'username': username,
-            'password': password,
-            'email': email
-        })
-
-        # Assert
         self.assertIn('refresh_token', response.cookies)
         self.assertEqual(response.data['message'], 'User created successfully')
-        self.assertEqual(response.data['username'], username)
+        self.assertEqual(response.data['username'], self.new_username)
 
 
 class RegisterThrottleTest(TestCase):
@@ -257,10 +198,14 @@ class CookieTokenObtainPairViewTest(TestCase):
         Runs before every test method in this class. Creates one existing user that login tests can 
         reuse, so each of those tests doesn't need to repeat the same setup code.
         """
+        self.username = 'existingUser'
+        self.password = 'myPassword123!'
+        self.email = 'existinguser@email.com'
+
         self.existing_user = User.objects.create_user(
-            username='existingUser',
-            password='MyPassword123!',
-            email='existinguser@email.com'
+            username=self.username,
+            password=self.password,
+            email=self.email
         )
 
     def test_login_success_sets_access_token_cookie(self):
@@ -268,14 +213,10 @@ class CookieTokenObtainPairViewTest(TestCase):
         Verifies that a successful login logs the user immediately by setting both cookies, access_token
         and refresh_token, and returns 200 OK.
         """
-        # Arrange
-        username = 'existingUser'
-        password = 'MyPassword123!'
-
-        # Act
+        # Arrange & Act
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password,
+            'username': self.username,
+            'password': self.password,
         })
 
         # Arrange
@@ -291,10 +232,14 @@ class LogoutViewTest(TestCase):
         Runs before every test method in this class. Creates one existing user that the logout tests can
         reuse, so each of the tests don't need to repeat the same code.
         """
+        self.username = 'existingUser'
+        self.password = 'myPassword123!'
+        self.email = 'existinguser@email.com'
+
         self.existing_user = User.objects.create_user(
-            username='existingUser',
-            password='myPassword123!',
-            email='existinguser@email.com'
+            username=self.username,
+            password=self.password,
+            email=self.email
         )
 
     def test_authenticated_logout_deletes_auth_cookie(self):
@@ -303,12 +248,9 @@ class LogoutViewTest(TestCase):
         access_token and refresh_token, and returns 200 OK.
         """
         # Arrange
-        username = 'existingUser'
-        password = 'myPassword123!'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password,
+            'username': self.username,
+            'password': self.password,
         })
 
         self.assertEqual(response.status_code, 200)
@@ -340,17 +282,20 @@ class GoogleLoginViewTest(TestCase):
     def setUp(self):
         pass
 
-
 class MeViewTest(TestCase):
     def setUp(self):
         """
         Runs before every test method in this class. Creates one existing user that the MeView tests can
         reuse, so each of the tests don't need to repeat the same code.
         """
+        self.username = 'existingUser'
+        self.password = 'myPassword123!'
+        self.email = 'existinguser@email.com'
+
         self.existing_user = User.objects.create_user(
-            username='existingUser',
-            password='myPassword123!',
-            email='existinguser@email.com'
+            username=self.username,
+            password=self.password,
+            email=self.email
         )
 
     def test_me_authenticated_returns_user_info(self):
@@ -359,13 +304,9 @@ class MeViewTest(TestCase):
         they have a usable password.
         """
         # Arrange
-        username = 'existingUser'
-        password = 'myPassword123!'
-        email = 'existinguser@email.com'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -375,8 +316,8 @@ class MeViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['username'], username)
-        self.assertEqual(response.data['email'], email)
+        self.assertEqual(response.data['username'], self.username)
+        self.assertEqual(response.data['email'], self.email)
         self.assertEqual(response.data['date_joined'], self.existing_user.date_joined)
         self.assertTrue(response.data['has_password'])
 
@@ -407,47 +348,52 @@ class ChangePasswordViewTest(TestCase):
         Runs before every test method in this class. Creates one existing user and one google user 
         that the change password tests can reuse, so each of the tests don't need to repeat the same code.
         """
+        self.username = 'existinguser'
+        self.password = 'myPassword123!'
+        self.email = 'existinguser@email.com'
+
+        self.google_username = 'googleuser'
+        self.google_email = 'googleuser@gmail.com'
+
+        self.new_password = 'myNewPassword123!'
+
         self.existing_user = User.objects.create_user(
-            username='existinguser',
-            password='myPassword123!',
-            email='existinguser@email.com'
+            username=self.username,
+            password=self.password,
+            email=self.email
         )
 
         self.google_user = User.objects.create_user(
-            username='googleuser',
-            email='googleuser@email.com'
+            username=self.google_username,
+            email=self.google_email
         )
         self.google_user.set_unusable_password()
         self.google_user.save()
 
     def test_successful_change_password_with_usable_password_changes_password(self):
         """
-        Verifies that when an authenticated user with a usuable password changes their password, the 
+        Verifies that when an authenticated user with a usable password changes their password, the 
         password is actually changed
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        new_password = 'myNewPassword123!'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Act
         response = self.client.post('/api/auth/change-password/', {
-            'current_password': password,
-            'new_password': new_password,
-            'confirm_password': new_password
+            'current_password': self.password,
+            'new_password': self.new_password,
+            'confirm_password': self.new_password
         })
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.existing_user.refresh_from_db()
-        self.assertTrue(self.existing_user.check_password(new_password))
+        self.assertTrue(self.existing_user.check_password(self.new_password))
         self.assertEqual(response.data['message'], 'Password changed successfully')
 
     def test_change_password_with_incorrect_current_password_returns_400(self):
@@ -456,23 +402,18 @@ class ChangePasswordViewTest(TestCase):
         password with the incorrect current password, it will return 400 bad request.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        wrong_password = 'wrongPassword123!'
-        new_password = 'myNewPassword123!'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password,
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         # Act
         response = self.client.post('/api/auth/change-password/', {
-            'current_password': wrong_password,
-            'new_password': new_password,
-            'confirm_password': new_password
+            'current_password': 'wrong_password',
+            'new_password': self.new_password,
+            'confirm_password': self.new_password
         })
 
         # Assert
@@ -485,23 +426,18 @@ class ChangePasswordViewTest(TestCase):
         password without a current_password, it will return 400 bad request.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        wrong_password = ''
-        new_password = 'myNewPassword123!'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password,
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         # Act
         response = self.client.post('/api/auth/change-password/', {
-            'current_password': wrong_password,
-            'new_password': new_password,
-            'confirm_password': new_password
+            'current_password': '',
+            'new_password': self.new_password,
+            'confirm_password': self.new_password
         })
 
         # Assert
@@ -511,26 +447,21 @@ class ChangePasswordViewTest(TestCase):
     def test_change_password_with_mismatched_passwords_returns_400(self):
         """
         Verifies that when an authenticated user with a usable password tries to change their 
-        password, if the new and confrim passwords don't match, it will return 400 bad request.
+        password, if the new and confirm passwords don't match, it will return 400 bad request.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        new_password = 'myNewPassword123!'
-        confirm_password = 'notMyNewPassword123!'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password,
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         # Act
         response = self.client.post('/api/auth/change-password/', {
-            'current_password': password,
-            'new_password': new_password,
-            'confirm_password': confirm_password
+            'current_password': self.password,
+            'new_password': self.new_password,
+            'confirm_password': 'unmatchedPassword'
         })
 
         # Assert
@@ -544,22 +475,18 @@ class ChangePasswordViewTest(TestCase):
         it returns a 400 bad request.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        new_password = 'pass'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password,
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         # Act
         response = self.client.post('/api/auth/change-password/', {
-            'current_password': password,
-            'new_password': new_password,
-            'confirm_password': new_password
+            'current_password': self.password,
+            'new_password': 'new',
+            'confirm_password': 'new'
         })
 
         # Assert
@@ -570,15 +497,11 @@ class ChangePasswordViewTest(TestCase):
         Verifies that if an unauthenticated user attempts to change password, it will return
         401 unauthorized
         """
-        # Arrange
-        current_password = 'myPassword123!'
-        new_password = 'myNewPassword123!'
-
         # Act
         response = self.client.post('/api/auth/change-password/', {
-            'current_password': current_password,
-            'new_password': new_password,
-            'confirm_password': new_password
+            'current_password': self.password,
+            'new_password': self.new_password,
+            'confirm_password': self.new_password
         })
 
         # Assert
@@ -590,22 +513,21 @@ class ChangePasswordViewTest(TestCase):
         working password via change password
         """
         # Arrange
-        new_password = 'myNewPassword123!'
         refresh = RefreshToken.for_user(self.google_user)
         access_token = refresh.access_token
         self.client.cookies['access_token'] = str(access_token)
 
         # Act
         response = self.client.post('/api/auth/change-password/', {
-            'new_password': new_password,
-            'confirm_password': new_password
+            'new_password': self.new_password,
+            'confirm_password': self.new_password
         })
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.google_user.refresh_from_db()
         self.assertTrue(self.google_user.has_usable_password())
-        self.assertTrue(self.google_user.check_password(new_password))
+        self.assertTrue(self.google_user.check_password(self.new_password))
         self.assertEqual(response.data['message'], 'Password created successfully')
 
     def test_change_password_old_password_no_longer_works(self):
@@ -613,32 +535,28 @@ class ChangePasswordViewTest(TestCase):
         Verifies that when users change their password, their old password no longer works.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        new_password = 'myNewPassword123!'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.client.post('/api/auth/change-password/', {
-            'current_password': password,
-            'new_password': new_password,
-            'confirm_password': new_password
+            'current_password': self.password,
+            'new_password': self.new_password,
+            'confirm_password': self.new_password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.existing_user.refresh_from_db()
-        self.assertTrue(self.existing_user.check_password(new_password))
+        self.assertTrue(self.existing_user.check_password(self.new_password))
 
 
         # Act
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         # Assert
@@ -649,32 +567,29 @@ class ChangePasswordViewTest(TestCase):
         Verifies that when users change their password, their new password works and can be used to login.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        new_password = 'myNewPassword123!'
-
+        # Arrange
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.client.post('/api/auth/change-password/', {
-            'current_password': password,
-            'new_password': new_password,
-            'confirm_password': new_password
+            'current_password': self.password,
+            'new_password': self.new_password,
+            'confirm_password': self.new_password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.existing_user.refresh_from_db()
-        self.assertTrue(self.existing_user.check_password(new_password))
+        self.assertTrue(self.existing_user.check_password(self.new_password))
 
 
         # Act
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': new_password
+            'username': self.username,
+            'password': self.new_password
         })
 
         # Assert
@@ -686,15 +601,22 @@ class DeleteAccountViewTest(TestCase):
         Runs before every test method in this class. Creates one existing user and one google user 
         that the change password tests can reuse, so each of the tests don't need to repeat the same code.
         """
+        self.username = 'existinguser'
+        self.password = 'myPassword123!'
+        self.email = 'existinguser@email.com'
+
+        self.google_username = 'googleuser'
+        self.google_email = 'existinguser@gmail.com' 
+
         self.existing_user = User.objects.create_user(
-            username='existinguser',
-            password='myPassword123!',
-            email='existinguser@email.com'
+            username=self.username,
+            password=self.password,
+            email=self.email
         )
 
         self.google_user = User.objects.create_user(
-            username='googleuser',
-            email='googleuser@email.com'
+            username=self.google_username,
+            email=self.google_email
         )
         self.google_user.set_unusable_password()
         self.google_user.save()
@@ -704,24 +626,21 @@ class DeleteAccountViewTest(TestCase):
         Verifies than an authenticated user with a usable password can delete their account.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Act
         response = self.client.post('/api/auth/delete-account/', {
-            'password': password,
+            'password': self.password,
         })
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(User.objects.filter(username=username).exists())
+        self.assertFalse(User.objects.filter(username=self.username).exists())
         self.assertEqual(response.data['message'], 'Account deleted successfully')
 
     def test_delete_existing_account_with_usable_password_success_clears_auth_cookies(self):
@@ -730,19 +649,16 @@ class DeleteAccountViewTest(TestCase):
         their auth cookies, refresh & access, are cleared.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Act
         response = self.client.post('/api/auth/delete-account/', {
-            'password': password
+            'password': self.password
         })
 
         # Assert
@@ -755,12 +671,9 @@ class DeleteAccountViewTest(TestCase):
         Verifies that a user with a usable password cannot delete their account without providing it.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -778,12 +691,9 @@ class DeleteAccountViewTest(TestCase):
         Verifies that a user with a usable password cannot delete their account using an incorrect password.
         """
         # Arrange
-        username = 'existinguser'
-        password = 'myPassword123!'
-        
         response = self.client.post('/api/auth/login/', {
-            'username': username,
-            'password': password
+            'username': self.username,
+            'password': self.password
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -856,7 +766,7 @@ class DeleteAccountViewTest(TestCase):
         """
         # Act
         response = self.client.post('/api/auth/delete-account/', {
-            'password': 'myPassword123!'
+            'password': self.password
         })
 
         # Assert
