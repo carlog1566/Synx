@@ -749,4 +749,116 @@ class DeleteAccountViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.cookies['access_token']['max-age'], 0)
         self.assertEqual(response.cookies['refresh_token']['max-age'], 0)
+
+    def test_delete_existing_account_without_password_returns_400(self):
+        """
+        Verifies that a user with a usable password cannot delete their account without providing it.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
         
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.post('/api/auth/delete-account/', {})
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Password is required')
+        self.assertTrue(User.objects.filter(username='existinguser').exists())
+
+    def test_delete_existing_account_with_incorrect_password_returns_400(self):
+        """
+        Verifies that a user with a usable password cannot delete their account using an incorrect password.
+        """
+        # Arrange
+        username = 'existinguser'
+        password = 'myPassword123!'
+        
+        response = self.client.post('/api/auth/login/', {
+            'username': username,
+            'password': password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.post('/api/auth/delete-account/', {
+            'password': 'WrongPassword123!'
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Incorrect password')
+        self.assertTrue(User.objects.filter(username='existinguser').exists())
+
+    def test_delete_account_without_usable_password_with_correct_confirmation_deletes_account(self):
+        """
+        Verifies that a user without a usable password can delete their account with the correct confirmation.
+        """
+        # Arrange
+        refresh = RefreshToken.for_user(self.google_user)
+        self.client.cookies['access_token'] = str(refresh.access_token)
+
+        # Act
+        response = self.client.post('/api/auth/delete-account/', {
+            'confirmation': 'DELETE'
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(User.objects.filter(username='googleuser').exists())
+        self.assertEqual(response.data['message'], 'Account deleted successfully')
+
+    def test_delete_account_without_usable_password_without_confirmation_returns_400(self):
+        """
+        Verifies that a user without a usable password cannot delete their account without confirmation.
+        """
+        # Arrange
+        refresh = RefreshToken.for_user(self.google_user)
+        self.client.cookies['access_token'] = str(refresh.access_token)
+
+        # Act
+        response = self.client.post('/api/auth/delete-account/', {})
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Type DELETE to confirm account deletion')
+        self.assertTrue(User.objects.filter(username='googleuser').exists())
+
+    def test_delete_account_without_usable_password_with_incorrect_confirmation_returns_400(self):
+        """
+        Verifies that a user without a usable password cannot delete their account with incorrect confirmation.
+        """
+        # Arrange
+        refresh = RefreshToken.for_user(self.google_user)
+        self.client.cookies['access_token'] = str(refresh.access_token)
+
+        # Act
+        response = self.client.post('/api/auth/delete-account/', {
+            'confirmation': 'delete'
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Type DELETE to confirm account deletion')
+        self.assertTrue(User.objects.filter(username='googleuser').exists())
+
+    def test_delete_account_with_unauthenticated_user_returns_401(self):
+        """
+        Verifies that an unauthenticated user cannot delete an account.
+        """
+        # Act
+        response = self.client.post('/api/auth/delete-account/', {
+            'password': 'myPassword123!'
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertTrue(User.objects.filter(username='existinguser').exists())
