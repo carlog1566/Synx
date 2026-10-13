@@ -1,5 +1,8 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from unittest.mock import patch
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -591,7 +594,241 @@ class ForgotPasswordViewTest(TestCase):
 
 class ResetPasswordConfirmViewTest(TestCase):
     def setUp(self):
-        pass
+        """
+        Runs before every test method in this class. Creates one existing user
+        and generates a valid reset token and uid that the password reset
+        confirmation tests can reuse.
+        """
+        self.username = 'existinguser'
+        self.password = 'myPassword123!'
+        self.email = 'existinguser@email.com'
+        self.new_password = 'myNewPassword123!'
+
+        self.existing_user = User.objects.create_user(
+            username=self.username,
+            password=self.password,
+            email=self.email
+        )
+
+        self.uid = urlsafe_base64_encode(force_bytes(self.existing_user.pk))
+        self.token = default_token_generator.make_token(self.existing_user)
+
+    def test_reset_password_success_changes_password(self):
+        """
+        Verifies that a successful password reset changes the user's
+        password in the database.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token,
+            'new_password': self.new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.existing_user.refresh_from_db()
+        self.assertTrue(self.existing_user.check_password(self.new_password))
+
+    def test_reset_password_success_returns_200(self):
+        """
+        Verifies that a successful password reset responds with 200 OK
+        and the expected success message.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token,
+            'new_password': self.new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'Password reset successfully')
+
+    def test_reset_password_invalid_uid_returns_400(self):
+        """
+        Verifies that resetting a password with an invalid uid returns
+        400 bad request.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': 'invalid-uid',
+            'token': self.token,
+            'new_password': self.new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Invalid reset link')
+
+    def test_reset_password_nonexistent_user_returns_400(self):
+        """
+        Verifies that resetting a password with a uid that doesn't
+        correspond to an existing user returns 400 bad request.
+        """
+        # Arrange
+        invalid_uid = urlsafe_base64_encode(force_bytes(999999))
+
+        # Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': invalid_uid,
+            'token': self.token,
+            'new_password': self.new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Invalid reset link')
+
+    def test_reset_password_missing_uid_returns_400(self):
+        """
+        Verifies that resetting a password without providing a uid
+        returns 400 bad request.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'token': self.token,
+            'new_password': self.new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Invalid reset link')
+
+    def test_reset_password_invalid_token_returns_400(self):
+        """
+        Verifies that resetting a password with an invalid token
+        returns 400 bad request.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': 'invalid-token',
+            'new_password': self.new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Invalid token')
+
+    def test_reset_password_missing_token_returns_400(self):
+        """
+        Verifies that resetting a password without providing a token
+        returns 400 bad request.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'new_password': self.new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Invalid token')
+
+    def test_reset_password_weak_password_returns_400(self):
+        """
+        Verifies that resetting a password with a weak new password
+        returns 400 bad request.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token,
+            'new_password': 'weak'
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_reset_password_weak_password_does_not_change_password(self):
+        """
+        Verifies that providing a weak new password does not update
+        the user's existing password.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token,
+            'new_password': 'weak'
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.existing_user.refresh_from_db()
+        self.assertTrue(self.existing_user.check_password(self.password))
+
+    def test_reset_password_reused_token_returns_400(self):
+        """
+        Verifies that a reset token cannot be reused after the
+        user's password has been successfully reset.
+        """
+        # Arrange
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token,
+            'new_password': self.new_password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token,
+            'new_password': 'anotherPassword123!'
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Invalid token')
+
+    def test_reset_password_old_password_no_longer_works(self):
+        """
+        Verifies that after a successful password reset, the user's
+        old password can no longer be used to log in.
+        """
+        # Arrange
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token,
+            'new_password': self.new_password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.post('/api/auth/login/', {
+            'username': self.username,
+            'password': self.password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_reset_password_new_password_can_be_used_to_login(self):
+        """
+        Verifies that after a successful password reset, the user
+        can log in using their new password.
+        """
+        # Arrange
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token,
+            'new_password': self.new_password
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Act
+        response = self.client.post('/api/auth/login/', {
+            'username': self.username,
+            'password': self.new_password
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class ChangePasswordViewTest(TestCase):

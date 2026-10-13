@@ -586,6 +586,12 @@ class ResetPasswordConfirmView(APIView):
         token = request.data.get('token')
         new_password = request.data.get('new_password')
 
+        if not uidb64:
+            return Response(
+                {'error': 'Invalid reset link'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
