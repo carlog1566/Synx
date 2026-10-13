@@ -504,7 +504,89 @@ class MeViewTest(TestCase):
 
 class ForgotPasswordViewTest(TestCase):
     def setUp(self):
-        pass
+        """
+        Runs before every test method in this class. Creates an existing user whose email 
+        can be reused in password-reset tests.
+        """
+        self.username = 'existinguser'
+        self.password = 'myPassword123!'
+        self.email = 'existinguser@email.com'
+
+        self.existing_user = User.objects.create_user(
+            username=self.username,
+            password=self.password,
+            email=self.email
+        )
+
+    @patch('api.views.resend.Emails.send')
+    def test_forgot_password_existing_email_returns_200(self, mock_send):
+        """
+        Verifies that requesting a password reset for an existing email returns 200 OK and 
+        sends a reset email.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/forgot-password/', {
+            'email': self.email
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'If that email exists, a reset link has been sent.')
+        mock_send.assert_called_once()
+
+    @patch('api.views.resend.Emails.send')
+    def test_forgot_password_email_lookup_is_case_insensitive(self, mock_send):
+        """
+        Verifies that an existing email is found even when its capitalization
+        differs from the email stored in the database.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/forgot-password/', {
+            'email': self.email.upper()
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'If that email exists, a reset link has been sent.')
+        mock_send.assert_called_once()
+
+    @patch('api.views.resend.Emails.send')
+    def test_forgot_password_nonexistent_email_returns_generic_message(self, mock_send):
+        """
+        Verifies that requesting a password reset for an unknown email
+        returns the same generic message without sending an email.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/forgot-password/', {
+            'email': 'unknown@email.com'
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'If that email exists, a reset link has been sent.')
+        mock_send.assert_not_called()
+
+    @patch('api.views.resend.Emails.send')
+    def test_forgot_password_email_failure_returns_500(self, mock_send):
+        """
+        Verifies that a failure when sending the reset email returns 500
+        Internal Server Error.
+        """
+        # Arrange
+        mock_send.side_effect = Exception('Email sending failed')
+
+        # Act
+        response = self.client.post('/api/auth/forgot-password/', {
+            'email': self.email
+        })
+
+        # Assert
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+        self.assertEqual(response.data['error'], 'Failed to send reset email')
+        mock_send.assert_called_once()
 
 
 class ResetPasswordConfirmViewTest(TestCase):
