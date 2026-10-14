@@ -1,8 +1,10 @@
-from django.test import TestCase
+from datetime import datetime, timedelta
+from django.test import TestCase, override_settings
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+from django.core.cache import cache
 from unittest.mock import patch
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -345,6 +347,66 @@ class GoogleLoginViewTest(TestCase):
         )
 
     @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_username_collision_generates_unique_username(self, mock_verify):
+        """
+        Verifies that Google login generates a unique username when
+        another user already has the requested username.
+        """
+        # Arrange
+        User.objects.create_user(
+            username=self.google_username,
+            email='anotheruser@email.com'
+        )
+
+        mock_verify.return_value = {
+            'email': self.google_email,
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        google_user = User.objects.get(email=self.google_email)
+        self.assertEqual(google_user.username, 'googleuser1')
+
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_legacy_account_updates_username(self, mock_verify):
+        """
+        Verifies that Google login updates a legacy account's username
+        without creating a duplicate account.
+        """
+        # Arrange
+        legacy_user = User.objects.create_user(
+            username=self.google_email,
+            email=self.google_email
+        )
+        legacy_user.set_unusable_password()
+        legacy_user.save()
+
+        mock_verify.return_value = {
+            'email': self.google_email,
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        legacy_user.refresh_from_db()
+        self.assertEqual(legacy_user.username, self.google_username)
+        self.assertFalse(legacy_user.has_usable_password())
+        self.assertEqual(User.objects.filter(email=self.google_email).count(), 1)
+
+    @patch('api.views.id_token.verify_oauth2_token')
     def test_google_login_success_returns_message(self, mock_verify):
         """
         Verifies that successful Google login returns the expected success message.
@@ -454,6 +516,24 @@ class GoogleLoginViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], 'Google email not verified')
 
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_missing_email_returns_400(self, mock_verify):
+        """
+        Verifies that a verified Google token without an email
+        is rejected with 400 bad request.
+        """
+        # Arrange
+        mock_verify.return_value = {
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class MeViewTest(TestCase):
     def setUp(self):
@@ -734,11 +814,7 @@ class ResetPasswordConfirmViewTest(TestCase):
         with 400 bad request.
         """
         # Arrange
-        from datetime import timedelta
-        from django.utils import timezone
-        from django.test import override_settings
-
-        original_time = timezone.now()
+        original_time = datetime.now()
 
         mock_now.return_value = original_time
         expired_token = default_token_generator.make_token(self.existing_user)

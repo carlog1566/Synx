@@ -361,7 +361,7 @@ class GoogleLoginView(APIView):
         email = idinfo.get('email')
         email_verified = idinfo.get('email_verified')
 
-        if not email_verified:
+        if not email or not email_verified:
             return Response(
                 {'error': 'Google email not verified'},
                 status=status.HTTP_400_BAD_REQUEST
