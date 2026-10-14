@@ -727,6 +727,55 @@ class ResetPasswordConfirmViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], 'Invalid token')
 
+    @patch('django.contrib.auth.tokens.PasswordResetTokenGenerator._now')
+    def test_reset_password_expired_token_returns_400(self, mock_now):
+        """
+        Verifies that an expired password reset token is rejected
+        with 400 bad request.
+        """
+        # Arrange
+        from datetime import timedelta
+        from django.utils import timezone
+        from django.test import override_settings
+
+        original_time = timezone.now()
+
+        mock_now.return_value = original_time
+        expired_token = default_token_generator.make_token(self.existing_user)
+
+        mock_now.return_value = original_time + timedelta(hours=2)
+
+        # Act
+        with override_settings(PASSWORD_RESET_TIMEOUT=3600):
+            response = self.client.post('/api/auth/reset-password/', {
+                'uid': self.uid,
+                'token': expired_token,
+                'new_password': self.new_password
+            })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Invalid token')
+
+        self.existing_user.refresh_from_db()
+        self.assertTrue(self.existing_user.check_password(self.password))
+
+    def test_reset_password_missing_new_password_returns_400(self):
+        """
+        Verifies that resetting a password without providing a new password
+        returns 400 bad request.
+        """
+        # Arrange & Act
+        response = self.client.post('/api/auth/reset-password/', {
+            'uid': self.uid,
+            'token': self.token
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.existing_user.refresh_from_db()
+        self.assertTrue(self.existing_user.check_password(self.password))
+
     def test_reset_password_weak_password_returns_400(self):
         """
         Verifies that resetting a password with a weak new password

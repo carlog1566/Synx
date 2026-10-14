@@ -607,6 +607,12 @@ class ResetPasswordConfirmView(APIView):
                 {'error': 'Invalid token'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        if not new_password:
+            return Response(
+                {'error': 'New password is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             validate_password(new_password)
