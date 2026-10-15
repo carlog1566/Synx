@@ -480,11 +480,13 @@ class SongStatsViewTest(TestCase):
         Creates songs for two users to verify that stats are owner-scoped.
         """
         self.user = User.objects.create_user(
-            username='statsuser', 
+            username='statsuser',
+            email='statsuser@email.com',
             password='myPassword123!'
         )
         self.other_user = User.objects.create_user(
-            username='otherstatsuser', 
+            username='otherstatsuser',
+            email='otherstatsuser@email.com',
             password='myPassword123!'
         )
 
@@ -505,3 +507,28 @@ class SongStatsViewTest(TestCase):
             title='Other Analyzed', 
             analyzed=True
         )
+
+    def test_stats_counts_only_authenticated_users_songs(self):
+        """
+        Verifies that statistics exclude songs owned by other users.
+        """
+        # Arrange & Act
+        response = self.client.get('/api/auth/stats/')
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['total_songs'], 2)
+        self.assertEqual(response.data['analyzed_songs'], 1)
+
+    def test_stats_unauthenticated_returns_401(self):
+        """
+        Verifies that unauthenticated users cannot retrieve song statistics.
+        """
+        # Arrange
+        self.client.cookies.clear()
+
+        # Act
+        response = self.client.get('/api/auth/stats/')
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
