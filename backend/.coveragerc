@@ -1,0 +1,5 @@
+[run]
+source = api, songs
+omit =
+    */migrations/*
+    */tests/*

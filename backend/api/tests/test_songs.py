@@ -1,4 +1,5 @@
-from unittest.mock import patch
+import os
+from unittest.mock import patch, Mock
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from rest_framework import status
@@ -346,6 +347,95 @@ class SongViewsetTest(TestCase):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.data['error'], 'Analysis failed')
+        self.own_private_song.refresh_from_db()
+        self.assertFalse(self.own_private_song.analyzed)
+
+    @override_settings(
+        USE_S3=True,
+        AWS_ACCESS_KEY_ID='test-access-key',
+        AWS_SECRET_ACCESS_KEY='test-secret-key',
+        AWS_STORAGE_BUCKET_NAME='test-bucket',
+        AWS_S3_REGION_NAME='us-west-2'
+    )
+    @patch('api.views.TabGenerator.generate')
+    @patch('api.views.ChordDetector.analyze')
+    def test_analyze_s3_song_uses_temporary_file(self, mock_analyze, mock_generate):
+        """
+        Verifies that S3 audio is downloaded to a temporary file,
+        analyzed, and deleted after successful analysis.
+        """
+        # Arrange
+        self.own_private_song.audio_file = 'songs/fake.mp3'
+        self.own_private_song.save()
+
+        expected_chords = [{'time': 0, 'chord': 'C'}]
+        mock_analyze.return_value = expected_chords
+        mock_generate.return_value = 'mock guitar tabs'
+
+        audio_chunks = [b'fake audio chunk 1', b'fake audio chunk 2']
+
+        # Act
+        with patch.object(
+            type(self.own_private_song.audio_file),
+            'chunks',
+            return_value=iter(audio_chunks)
+        ):
+            response = self.client.post(
+                self.analyze_url(self.own_private_song)
+            )
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        temp_path = mock_analyze.call_args.args[0]
+        self.assertFalse(os.path.exists(temp_path))
+
+        mock_analyze.assert_called_once_with(temp_path, step=2.0)
+
+        self.own_private_song.refresh_from_db()
+        self.assertTrue(self.own_private_song.analyzed)
+        self.assertEqual(self.own_private_song.chords, expected_chords)
+        self.assertEqual(self.own_private_song.tabs, {'guitar': 'mock guitar tabs'})
+    
+    @override_settings(
+        USE_S3=True,
+        AWS_ACCESS_KEY_ID='test-access-key',
+        AWS_SECRET_ACCESS_KEY='test-secret-key',
+        AWS_STORAGE_BUCKET_NAME='test-bucket',
+        AWS_S3_REGION_NAME='us-west-2'
+    )
+    @patch('api.views.ChordDetector.analyze')
+    def test_analyze_s3_failure_cleans_up_temporary_file(self, mock_analyze):
+        """
+        Verifies that temporary files are deleted even when
+        chord detection raises an exception.
+        """
+        # Arrange
+        self.own_private_song.audio_file = 'songs/fake.mp3'
+        self.own_private_song.save()
+
+        mock_analyze.side_effect = RuntimeError('Analysis failed')
+
+        audio_chunks = [b'fake audio data']
+
+        # Act
+        with patch.object(
+            type(self.own_private_song.audio_file),
+            'chunks',
+            return_value=iter(audio_chunks)
+        ):
+            response = self.client.post(
+                self.analyze_url(self.own_private_song)
+            )
+            print("S3 ANALYSIS RESPONSE:", response.data)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.data['error'], 'Analysis failed')
+
+        temp_path = mock_analyze.call_args.args[0]
+        self.assertFalse(os.path.exists(temp_path))
+
         self.own_private_song.refresh_from_db()
         self.assertFalse(self.own_private_song.analyzed)
 

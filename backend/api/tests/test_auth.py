@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django.test import TestCase, override_settings
+from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -135,6 +136,27 @@ class RegisterViewTest(TestCase):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], 'An account with this email already exists')
+
+    @patch('api.views.User.objects.create_user')
+    def test_register_integrity_error_returns_400(self, mock_create_user):
+        """
+        Verifies that registration returns 400 bad request when the database raises an IntegrityError
+        during user creation.
+        """
+        # Arrange
+        mock_create_user.side_effect = IntegrityError('Duplicate email')
+
+        # Act
+        response = self.client.post('/api/auth/register/', {
+            'username': self.new_username,
+            'password': self.new_password,
+            'email': self.new_email
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'An account with this email already exists')
+        mock_create_user.assert_called_once()
 
     def test_register_weak_password_returns_400(self):
         """
@@ -405,6 +427,43 @@ class GoogleLoginViewTest(TestCase):
         self.assertEqual(legacy_user.username, self.google_username)
         self.assertFalse(legacy_user.has_usable_password())
         self.assertEqual(User.objects.filter(email=self.google_email).count(), 1)
+    
+    @patch('api.views.id_token.verify_oauth2_token')
+    def test_google_login_legacy_username_collision(self, mock_verify):
+        """
+        Verifies that a legacy Google account receives a unique username
+        when its preferred username is already taken.
+        """
+        # Arrange
+        legacy_user = User.objects.create_user(
+            username=self.google_email,
+            email=self.google_email
+        )
+        legacy_user.set_unusable_password()
+        legacy_user.save()
+
+        User.objects.create_user(
+            username=self.google_username,
+            email='anotheruser@email.com'
+        )
+
+        mock_verify.return_value = {
+            'email': self.google_email,
+            'email_verified': True
+        }
+
+        # Act
+        response = self.client.post('/api/auth/google/', {
+            'credential': self.credential
+        })
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        legacy_user.refresh_from_db()
+        self.assertEqual(legacy_user.username, 'googleuser1')
+        self.assertFalse(legacy_user.has_usable_password())
+        self.assertEqual(User.objects.filter(email=self.google_email).count(), 1)
 
     @patch('api.views.id_token.verify_oauth2_token')
     def test_google_login_success_returns_message(self, mock_verify):
@@ -664,10 +723,7 @@ class ForgotPasswordViewTest(TestCase):
         })
 
         # Assert
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.data['error'], 'Failed to send reset email')
         mock_send.assert_called_once()
 
