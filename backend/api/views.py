@@ -28,6 +28,7 @@ from .models import Song
 from .serializers import SongSerializer
 from .utils import set_auth_cookies
 from .throttles import RegisterThrottle
+from .permissions import IsOwnerOrReadOnlyPublic
 
 # Create your views here.
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
@@ -54,7 +55,7 @@ class SongViewset(viewsets.ModelViewSet):
     """
 
     serializer_class = SongSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnlyPublic]
 
     @action(detail=True, methods=['post'])
     def analyze(self, request, pk=None):
