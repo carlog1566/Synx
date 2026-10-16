@@ -28,6 +28,7 @@ from .models import Song
 from .serializers import SongSerializer
 from .utils import set_auth_cookies
 from .throttles import RegisterThrottle
+from .permissions import IsOwnerOrReadOnlyPublic
 
 # Create your views here.
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
@@ -54,7 +55,7 @@ class SongViewset(viewsets.ModelViewSet):
     """
 
     serializer_class = SongSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnlyPublic]
 
     @action(detail=True, methods=['post'])
     def analyze(self, request, pk=None):
@@ -361,7 +362,7 @@ class GoogleLoginView(APIView):
         email = idinfo.get('email')
         email_verified = idinfo.get('email_verified')
 
-        if not email_verified:
+        if not email or not email_verified:
             return Response(
                 {'error': 'Google email not verified'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -586,6 +587,12 @@ class ResetPasswordConfirmView(APIView):
         token = request.data.get('token')
         new_password = request.data.get('new_password')
 
+        if not uidb64:
+            return Response(
+                {'error': 'Invalid reset link'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
@@ -599,6 +606,12 @@ class ResetPasswordConfirmView(APIView):
         if not default_token_generator.check_token(user, token):
             return Response(
                 {'error': 'Invalid token'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not new_password:
+            return Response(
+                {'error': 'New password is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
