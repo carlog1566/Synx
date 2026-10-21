@@ -71,8 +71,11 @@ jobs:
 
             - name: Check Django configuration
               run: python manage.py check
+            
+            - name: Check for missing migrations
+              run: python manage.py makemigrations --check --dry-run
 
             - name: Run tests with coverage
               run: |
                 coverage run manage.py test api
-                coverage report -m
+                coverage report -m --fail-under=70
