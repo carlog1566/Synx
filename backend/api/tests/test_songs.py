@@ -1,10 +1,12 @@
 import os
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from api.models import Song
+from api.serializers import SongSerializer
 
 class SongViewsetTest(TestCase):
     def setUp(self):
@@ -562,6 +564,19 @@ class SongViewsetTest(TestCase):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_song_string_representation(self):
+        """
+        Verifies that a song's string representation includes its title and artist.
+        """
+
+        # Arrange
+        song = self.own_private_song
+
+        # Act
+        result = str(song)
+
+        # Assert
+        self.assertEqual(result, 'My Private Song - Artist A')
 
 
 class SongStatsViewTest(TestCase):
@@ -622,3 +637,143 @@ class SongStatsViewTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class SongSerializerTest(TestCase):
+    def setUp(self):
+        """
+        Creates a user and serializer for testing song duration detection.
+        """
+        self.user = User.objects.create_user(
+            username='serializeruser',
+            email='serializer@email.com',
+            password='myPassword123!'
+        )
+        self.serializer = SongSerializer()
+
+    def create_song(self):
+        """
+        Creates a song using an uploaded audio file.
+        """
+        return {
+            'owner': self.user,
+            'title': 'Test Song',
+            'artist': 'Test Artist',
+            'audio_file': SimpleUploadedFile(
+                'test.mp3',
+                b'fake audio content',
+                content_type='audio/mpeg'
+            )
+        }
+
+    @override_settings(USE_S3=False)
+    @patch('api.serializers.librosa.get_duration', return_value=125.8)
+    def test_create_song_with_local_audio_saves_duration(self, mock_duration):
+        """
+        Verifies that local audio duration is calculated and saved.
+        """
+
+        # Arrange
+        validated_data = self.create_song()
+
+        # Act
+        song = self.serializer.create(validated_data)
+
+        # Assert
+        self.assertEqual(song.duration, 125)
+        song.refresh_from_db()
+        self.assertEqual(song.duration, 125)
+        mock_duration.assert_called_once_with(path=song.audio_file.path)
+
+    @override_settings(USE_S3=True)
+    @patch('api.serializers.librosa.get_duration', return_value=185.7)
+    @patch('django.db.models.fields.files.FieldFile.chunks')
+    @patch('tempfile.NamedTemporaryFile')
+    @patch('os.unlink')
+    def test_create_song_with_s3_audio_saves_duration(
+        self, mock_unlink, mock_tempfile, mock_chunks, mock_duration
+    ):
+        """
+        Verifies that S3 audio duration is saved and the temporary file is deleted.
+        """
+
+        # Arrange
+        validated_data = self.create_song()
+
+        mock_chunks.return_value = [b'fake audio content']
+
+        mock_temp = MagicMock()
+        mock_temp.name = '/tmp/test_audio.mp3'
+        mock_tempfile.return_value.__enter__.return_value = mock_temp
+
+        # Act
+        song = self.serializer.create(validated_data)
+
+        # Assert
+        self.assertEqual(song.duration, 185)
+        song.refresh_from_db()
+        self.assertEqual(song.duration, 185)
+
+        mock_duration.assert_called_once_with(path='/tmp/test_audio.mp3')
+        mock_unlink.assert_called_once_with('/tmp/test_audio.mp3')
+        mock_temp.write.assert_called_once_with(b'fake audio content')
+
+    @override_settings(USE_S3=False)
+    @patch('api.serializers.librosa.get_duration')
+    @patch('builtins.print')
+    def test_create_song_with_local_duration_failure_still_saves_song(self, mock_print, mock_duration):
+        """
+        Verifies that a local duration detection failure does not prevent song creation.
+        """
+
+        # Arrange
+        validated_data = self.create_song()
+        mock_duration.side_effect = Exception('Duration detection failed')
+
+        # Act
+        song = self.serializer.create(validated_data)
+
+        # Assert
+        self.assertTrue(Song.objects.filter(pk=song.pk).exists())
+        self.assertEqual(song.duration, 0)
+        mock_duration.assert_called_once()
+        mock_print.assert_called_once_with(
+            'Duration detection failed: Duration detection failed'
+        )
+
+    @override_settings(USE_S3=True)
+    @patch('api.serializers.librosa.get_duration')
+    @patch('django.db.models.fields.files.FieldFile.chunks')
+    @patch('tempfile.NamedTemporaryFile')
+    @patch('os.unlink')
+    @patch('builtins.print')
+    def test_create_song_with_s3_duration_failure_cleans_up_temp_file(
+        self, mock_print, mock_unlink, mock_tempfile, mock_chunks, mock_duration
+    ):
+        """
+        Verifies that an S3 duration failure cleans up its temporary file and saves the song.
+        """
+
+        # Arrange
+        validated_data = self.create_song()
+
+        mock_chunks.return_value = [b'fake audio content']
+
+        mock_temp = MagicMock()
+        mock_temp.name = '/tmp/test_audio.mp3'
+        mock_tempfile.return_value.__enter__.return_value = mock_temp
+
+        mock_duration.side_effect = Exception('Invalid audio file')
+
+        # Act
+        song = self.serializer.create(validated_data)
+
+        # Assert
+        self.assertTrue(Song.objects.filter(pk=song.pk).exists())
+        self.assertEqual(song.duration, 0)
+
+        mock_duration.assert_called_once_with(path='/tmp/test_audio.mp3')
+        mock_unlink.assert_called_once_with('/tmp/test_audio.mp3')
+        mock_print.assert_called_once_with(
+            'Duration detection failed: Invalid audio file'
+        )
