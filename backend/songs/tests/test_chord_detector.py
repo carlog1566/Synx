@@ -3,6 +3,7 @@ import numpy as np
 from django.test import TestCase
 from songs.chord_detector import ChordDetector
 
+
 class ChordDetectorTest(TestCase):
     def setUp(self):
         """
