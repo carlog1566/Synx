@@ -23,7 +23,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.js'],
+    setupFiles: ['./src/tests/setup.js'],
     globals: true,
     css: true,
     coverage: {
@@ -32,7 +32,7 @@ export default defineConfig({
       include: ['src/**/*.{js,jsx,ts,tsx}'],
       exclude: [
         'src/**/*.{test,spec}.{js,jsx,ts,tsx}',
-        'src/test/**',
+        'src/tests/**',
       ],
     },
   }
