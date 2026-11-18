@@ -26,10 +26,11 @@ function App() {
 	const location = useLocation()
 	const [navHeight, setNavHeight] = useState(0)
 
-	const isRegister = location.pathname === '/register'
-    const isLogin = location.pathname === '/login'
-    const forgotPassword = location.pathname === '/forgot-password'
-    const resetPassword = location.pathname.startsWith('/reset-password/')
+	const pathname = location.pathname.replace(/\/+$/, '') || '/'
+	const isRegister = pathname === '/register'
+    const isLogin = pathname === '/login'
+    const forgotPassword = pathname === '/forgot-password'
+    const resetPassword = pathname.startsWith('/reset-password/')
     const isAuthPage = isRegister || isLogin || forgotPassword || resetPassword
 
 	useEffect(() => {
