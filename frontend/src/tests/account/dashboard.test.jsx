@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router'
 
@@ -120,7 +120,9 @@ describe('DashboardPage', () => {
         /** Verifies that private account information is not rendered. */
 
         // Arrange & Act
-        renderDashboard(null)
+        await act(async () => {
+            renderDashboard(null)
+        })
 
         // Assert
         expect(screen.queryByText('Your Account')).not.toBeInTheDocument()
@@ -423,7 +425,7 @@ describe('DashboardPage', () => {
         expect(await screen.findByText('Incorrect password')).toBeInTheDocument()
         expect(mockClearUser).not.toHaveBeenCalled()
     })
-    
+
     it('displays a fallback error when account deletion fails unexpectedly', async () => {
         /**
          * Verifies that a deletion failure without a backend error
