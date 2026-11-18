@@ -24,6 +24,8 @@ vi.mock('framer-motion', async () => {
                         whileTap: _whileTap,
                         variants: _variants,
                         layout: _layout,
+                        whileInView: _whileInView,
+                        viewport: _viewport,
                         ...props
                     }) => createElement(tag, props, children)
                 }
