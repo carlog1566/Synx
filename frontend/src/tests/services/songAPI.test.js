@@ -29,31 +29,46 @@ describe('songAPI', () => {
         mockPost.mockResolvedValue({ data: {} })
     })
 
-    it('configures the API client to include authentication cookies', async () => {
-        /**
-         * Verifies that the API client includes authentication cookies
-         * and uses the correct base URL and default headers.
-         */
+    it.each([
+        {
+            environmentURL: '',
+            expectedURL: '/api',
+        },
+        {
+            environmentURL: 'https://backend.example.com',
+            expectedURL: 'https://backend.example.com/api',
+        },
+    ])(
+        'configures the API client using $expectedURL',
+        async ({ environmentURL, expectedURL }) => {
+            /**
+             * Verifies that development and production environments
+             * use the correct base URL and authentication settings.
+             */
 
-        // Arrange
-        vi.resetModules()
+            // Arrange
+            vi.stubEnv('VITE_API_URL', environmentURL)
+            vi.resetModules()
+            axios.create.mockClear()
 
-        const expectedBaseURL = import.meta.env.VITE_API_URL
-            ? `${import.meta.env.VITE_API_URL}/api`
-            : '/api'
+            try {
+                // Act
+                await import('../../services/api')
 
-        // Act
-        await import('../../services/api')
-
-        // Assert
-        expect(axios.create).toHaveBeenCalledWith({
-            baseURL: expectedBaseURL,
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-    })
+                // Assert
+                expect(axios.create).toHaveBeenCalledExactlyOnceWith({
+                    baseURL: expectedURL,
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+            } finally {
+                vi.unstubAllEnvs()
+                vi.resetModules()
+            }
+        }
+    )
 
     it('retrieves all songs', async () => {
         /** Verifies that the song list uses the correct GET endpoint. */

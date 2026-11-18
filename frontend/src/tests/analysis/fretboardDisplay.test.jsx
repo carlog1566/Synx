@@ -205,4 +205,60 @@ describe('FretboardDisplay', () => {
         // Assert
         expect(props.onSeek).toHaveBeenCalledExactlyOnceWith(5)
     })
+
+    it('interpolates the playhead between consecutive chords', () => {
+        /**
+         * Verifies that playback halfway between two chords positions
+         * the playhead halfway between their horizontal coordinates.
+         */
+
+        // Arrange & Act
+        const { container } = renderFretboard({
+            currentTime: 2.5,
+        })
+
+        // Assert
+        const playhead = container.querySelector(
+            'line[stroke="#9333ea"]'
+        )
+
+        expect(playhead).toHaveAttribute('x1', '80')
+        expect(playhead).toHaveAttribute('x2', '80')
+    })
+
+    it('keeps the playhead on the last chord after its timestamp', () => {
+        /**
+         * Verifies that the playhead does not interpolate past
+         * the final chord in the progression.
+         */
+
+        // Arrange & Act
+        const { container } = renderFretboard({
+            currentTime: 30,
+        })
+
+        // Assert
+        const playhead = container.querySelector(
+            'line[stroke="#9333ea"]'
+        )
+
+        expect(playhead).toHaveAttribute('x1', '200')
+        expect(playhead).toHaveAttribute('x2', '200')
+    })
+
+    it('does not scroll the fretboard before the first chord', () => {
+        /**
+         * Verifies that automatic scrolling does not occur when
+         * playback has not reached the first chord.
+         */
+
+        // Arrange & Act
+        renderFretboard({
+            tabData: tabData.slice(1),
+            currentTime: 0,
+        })
+
+        // Assert
+        expect(HTMLElement.prototype.scrollTo).not.toHaveBeenCalled()
+    })
 })

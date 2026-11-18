@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 
@@ -162,5 +162,117 @@ describe('Navbar', () => {
         // Assert
         expect(logout).toHaveBeenCalledTimes(1)
         expect(setMenuOpen).toHaveBeenCalledWith(false)
+    })
+    
+    it('closes the mobile menu when switching to desktop width', () => {
+        /**
+         * Verifies that crossing the desktop breakpoint automatically
+         * closes an expanded mobile navigation menu.
+         */
+
+        // Arrange
+        let handleMediaChange
+
+        window.matchMedia.mockReturnValue({
+            matches: false,
+            addEventListener: vi.fn((event, callback) => {
+                if (event === 'change') {
+                    handleMediaChange = callback
+                }
+            }),
+            removeEventListener: vi.fn(),
+        })
+
+        const { setMenuOpen } = renderNavbar(null, true)
+
+        // Act
+        act(() => {
+            handleMediaChange({ matches: true })
+        })
+
+        // Assert
+        expect(window.matchMedia).toHaveBeenCalledWith('(min-width: 768px)')
+        expect(setMenuOpen).toHaveBeenCalledExactlyOnceWith(false)
+    })
+
+    it('does not close the menu when switching to mobile width', () => {
+        /**
+         * Verifies that the desktop breakpoint handler does not close
+         * the mobile menu when the media query does not match.
+         */
+
+        // Arrange
+        let handleMediaChange
+
+        window.matchMedia.mockReturnValue({
+            matches: true,
+            addEventListener: vi.fn((event, callback) => {
+                if (event === 'change') {
+                    handleMediaChange = callback
+                }
+            }),
+            removeEventListener: vi.fn(),
+        })
+
+        const { setMenuOpen } = renderNavbar(null, true)
+
+        // Act
+        act(() => {
+            handleMediaChange({ matches: false })
+        })
+
+        // Assert
+        expect(setMenuOpen).not.toHaveBeenCalled()
+    })
+
+    it('removes the media query listener when unmounted', () => {
+        /**
+         * Verifies that responsive navigation listeners are cleaned up
+         * when the navbar is removed.
+         */
+
+        // Arrange
+        const addEventListener = vi.fn()
+        const removeEventListener = vi.fn()
+
+        window.matchMedia.mockReturnValue({
+            matches: false,
+            addEventListener,
+            removeEventListener,
+        })
+
+        const { unmount } = renderNavbar()
+        const callback = addEventListener.mock.calls[0][1]
+
+        // Act
+        unmount()
+
+        // Assert
+        expect(removeEventListener).toHaveBeenCalledExactlyOnceWith(
+            'change',
+            callback
+        )
+    })
+
+    it('closes the mobile menu when a navigation link is selected', async () => {
+        /**
+         * Verifies that mobile navigation links dismiss the expanded menu.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+        const { setMenuOpen } = renderNavbar(null, true)
+
+        const songLinks = screen.getAllByRole('link', {
+            name: 'Songs',
+        })
+
+        const mobileSongLink = songLinks[songLinks.length - 1]
+
+        // Act
+        await user.click(mobileSongLink)
+
+        // Assert
+        expect(setMenuOpen).toHaveBeenCalledExactlyOnceWith(false)
     })
 })

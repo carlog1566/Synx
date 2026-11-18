@@ -101,4 +101,79 @@ describe('ChordStrip', () => {
         expect(screen.getAllByText('Active: G')).toHaveLength(2)
         expect(screen.queryByText('Active: C')).not.toBeInTheDocument()
     })
+    
+    it('updates the chord strip when its container is resized', () => {
+        /**
+         * Verifies that resizing the container updates the spacer
+         * used to center the active chord.
+         */
+
+        // Arrange
+        let resizeCallback
+
+        const observe = vi.fn()
+        const disconnect = vi.fn()
+
+        const resizeObserverSpy = vi
+            .spyOn(globalThis, 'ResizeObserver')
+            .mockImplementation(function (callback) {
+                resizeCallback = callback
+                this.observe = observe
+                this.disconnect = disconnect
+            })
+
+        const { container, unmount } = render(<ChordStrip />)
+
+        const observedElement = observe.mock.calls[0][0]
+
+        Object.defineProperty(observedElement, 'clientWidth', {
+            configurable: true,
+            value: 400,
+        })
+
+        // Act
+        act(() => {
+            resizeCallback()
+        })
+
+        // Assert
+        const chordRow = container.querySelector('[style*="padding-left"]')
+
+        expect(chordRow).toHaveStyle({
+            paddingLeft: '152px',
+        })
+
+        // Act
+        unmount()
+
+        // Assert
+        expect(disconnect).toHaveBeenCalledTimes(1)
+
+        resizeObserverSpy.mockRestore()
+    })
+
+    it('wraps the animation after completing the entire chord sequence', () => {
+        /**
+         * Verifies that the chord strip loops back to the first chord
+         * after moving through the complete preview sequence.
+         */
+
+        // Arrange
+        mockSet.mockClear()
+        render(<ChordStrip />)
+
+        const totalWidth = 10 * (96 + 28)
+        const elapsedTime = ((totalWidth + 10) / 45) * 1000
+
+        // Act
+        act(() => {
+            frame.callback(elapsedTime, elapsedTime)
+        })
+
+        // Assert
+        const lastPosition = mockSet.mock.calls.at(-1)[0]
+
+        expect(lastPosition).toBeCloseTo(-10)
+        expect(screen.getAllByText('Active: C')).toHaveLength(2)
+    })
 })

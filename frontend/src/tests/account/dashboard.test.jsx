@@ -423,4 +423,92 @@ describe('DashboardPage', () => {
         expect(await screen.findByText('Incorrect password')).toBeInTheDocument()
         expect(mockClearUser).not.toHaveBeenCalled()
     })
+    
+    it('displays a fallback error when account deletion fails unexpectedly', async () => {
+        /**
+         * Verifies that a deletion failure without a backend error
+         * message displays the default error.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+
+        authAPI.deleteAccount.mockRejectedValue(
+            new Error('Network error')
+        )
+
+        renderDashboard()
+
+        // Act
+        await user.click(screen.getByRole('button', {
+            name: 'Delete Account',
+        }))
+
+        await user.type(
+            screen.getByPlaceholderText('Enter your password to confirm'),
+            'Password123!'
+        )
+
+        await user.click(screen.getByRole('button', {
+            name: 'Permanently Delete',
+        }))
+
+        // Assert
+        expect(await screen.findByText(
+            'Something went wrong. Please try again.'
+        )).toBeInTheDocument()
+
+        expect(mockClearUser).not.toHaveBeenCalled()
+
+        expect(screen.getByRole('button', {
+            name: 'Permanently Delete',
+        })).toBeEnabled()
+    })
+
+    it('disables account deletion controls while deleting', async () => {
+        /**
+         * Verifies that users cannot submit or cancel another
+         * deletion request while deletion is pending.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+        let finishDeletion
+
+        authAPI.deleteAccount.mockImplementation(() => new Promise(resolve => {
+            finishDeletion = resolve
+        }))
+
+        renderDashboard()
+
+        // Act
+        await user.click(screen.getByRole('button', {
+            name: 'Delete Account',
+        }))
+
+        const passwordInput = screen.getByPlaceholderText(
+            'Enter your password to confirm'
+        )
+
+        await user.type(passwordInput, 'Password123!')
+
+        await user.click(screen.getByRole('button', {
+            name: 'Permanently Delete',
+        }))
+
+        // Assert
+        expect(passwordInput).toBeDisabled()
+
+        expect(screen.getByRole('button', {
+            name: 'Deleting...',
+        })).toBeDisabled()
+
+        expect(screen.getByRole('button', {
+            name: 'Cancel',
+        })).toBeDisabled()
+
+        finishDeletion({})
+
+        expect(await screen.findByText('Home Page')).toBeInTheDocument()
+    })
 })

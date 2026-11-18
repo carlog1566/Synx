@@ -281,4 +281,62 @@ describe('SongDetailPage', () => {
         expect(mockStop).toHaveBeenCalledTimes(1)
         expect(await screen.findByText('Song Library')).toBeInTheDocument()
     })
+    
+    it('ignores seeking when the song has no audio player', async () => {
+        /**
+         * Verifies that selecting a chord without an available audio
+         * player does not attempt to seek.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+
+        songAPI.getById.mockResolvedValue({
+            data: {
+                ...testSong,
+                audio_file_url: null,
+            },
+        })
+
+        renderSongDetail()
+
+        // Act
+        await user.click(await screen.findByRole('button', {
+            name: 'Seek to C',
+        }))
+
+        // Assert
+        expect(mockSeek).not.toHaveBeenCalled()
+        expect(screen.getByText('Mock Fretboard')).toBeInTheDocument()
+    })
+
+    it('returns to the library without an active audio player', async () => {
+        /**
+         * Verifies that users can navigate back even when no audio
+         * player has been initialized.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+
+        songAPI.getById.mockResolvedValue({
+            data: {
+                ...testSong,
+                audio_file_url: null,
+            },
+        })
+
+        renderSongDetail()
+
+        await screen.findByText('Test Song')
+
+        // Act
+        await user.click(screen.getByRole('button', {
+            name: 'Back to Library',
+        }))
+
+        // Assert
+        expect(mockStop).not.toHaveBeenCalled()
+        expect(await screen.findByText('Song Library')).toBeInTheDocument()
+    })
 })

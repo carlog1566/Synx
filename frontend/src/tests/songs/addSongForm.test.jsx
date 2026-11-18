@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import AddSongForm from '../../components/AddSongForm'
@@ -213,5 +213,88 @@ describe('AddSongForm', () => {
         finishUpload({ data: { id: 1 } })
 
         expect(await screen.findByText('Song added successfully!')).toBeInTheDocument()
+    })
+
+    it('rejects a submission with a missing artist', async () => {
+        /**
+         * Verifies that providing a title without an artist
+         * does not allow song creation.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+        renderAddSongForm()
+
+        // Act
+        await user.type(
+            screen.getByPlaceholderText('Enter song title'),
+            'Test Song'
+        )
+
+        await user.click(screen.getByRole('button', {
+            name: /add song/i,
+        }))
+
+        // Assert
+        expect(screen.getByText(
+            'Please fill in all fields!'
+        )).toBeInTheDocument()
+
+        expect(songAPI.create).not.toHaveBeenCalled()
+    })
+
+    it('removes the success notification after three seconds', async () => {
+        /**
+         * Verifies that the upload confirmation automatically disappears
+         * after its configured three-second timeout.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+        const { fileInput } = renderAddSongForm()
+
+        songAPI.create.mockResolvedValue({
+            data: { id: 1 },
+        })
+
+        await populateForm(user, fileInput)
+
+        vi.useFakeTimers()
+
+        try {
+            // Act
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', {
+                    name: /add song/i,
+                }))
+            })
+
+            // Assert
+            expect(screen.getByText(
+                'Song added successfully!'
+            )).toBeInTheDocument()
+
+            // Act
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(2999)
+            })
+
+            // Assert
+            expect(screen.getByText(
+                'Song added successfully!'
+            )).toBeInTheDocument()
+
+            // Act
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(1)
+            })
+
+            // Assert
+            expect(screen.queryByText(
+                'Song added successfully!'
+            )).not.toBeInTheDocument()
+        } finally {
+            vi.useRealTimers()
+        }
     })
 })

@@ -263,4 +263,99 @@ describe('AudioPlayer', () => {
         // Assert
         expect(mockWaveSurfer.destroy).toHaveBeenCalledTimes(1)
     })
+    
+    it('does not seek after the audio player has been stopped', () => {
+        /**
+         * Verifies that seeking without an active WaveSurfer instance
+         * does not throw an error or report a playback update.
+         */
+
+        // Arrange
+        const { ref, onTimeUpdate } = renderAudioPlayer()
+        emitReady()
+
+        act(() => {
+            ref.current.stop()
+        })
+
+        // Act
+        act(() => {
+            ref.current.seekTo(30)
+        })
+
+        // Assert
+        expect(mockWaveSurfer.seekTo).not.toHaveBeenCalled()
+        expect(onTimeUpdate).not.toHaveBeenCalled()
+    })
+
+    it('does not toggle playback after the player has been stopped', async () => {
+        /**
+         * Verifies that playback controls do not access a destroyed
+         * WaveSurfer instance.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+        const { ref } = renderAudioPlayer()
+        emitReady()
+
+        act(() => {
+            ref.current.stop()
+        })
+
+        // Act
+        await user.click(screen.getByRole('button', { name: '' }))
+
+        // Assert
+        expect(mockWaveSurfer.playPause).not.toHaveBeenCalled()
+    })
+
+    it('does not update the playback rate of a destroyed player', async () => {
+        /**
+         * Verifies that speed changes do not access WaveSurfer
+         * after the audio player has been stopped.
+         */
+
+        // Arrange
+        const user = userEvent.setup()
+        const { ref } = renderAudioPlayer()
+        emitReady()
+
+        act(() => {
+            ref.current.stop()
+        })
+
+        // Act
+        await user.click(screen.getByRole('button', {
+            name: '1.5x',
+        }))
+
+        // Assert
+        expect(mockWaveSurfer.setPlaybackRate).not.toHaveBeenCalled()
+    })
+
+    it('reinitializes the player when the audio URL changes', () => {
+        /**
+         * Verifies that changing the audio source destroys the old
+         * playback instance and loads the new audio file.
+         */
+
+        // Arrange
+        const { rerender, ref, onTimeUpdate } = renderAudioPlayer()
+        const newAudioUrl = 'https://example.com/another-song.mp3'
+
+        // Act
+        rerender(
+            <AudioPlayer
+                ref={ref}
+                audioUrl={newAudioUrl}
+                onTimeUpdate={onTimeUpdate}
+            />
+        )
+
+        // Assert
+        expect(mockWaveSurfer.destroy).toHaveBeenCalledTimes(1)
+        expect(mockCreate).toHaveBeenCalledTimes(2)
+        expect(mockWaveSurfer.load).toHaveBeenLastCalledWith(newAudioUrl)
+    })
 })
