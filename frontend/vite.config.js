@@ -33,6 +33,7 @@ export default defineConfig({
       exclude: [
         'src/**/*.{test,spec}.{js,jsx,ts,tsx}',
         'src/tests/**',
+        'src/main.jsx',
       ],
     },
   }
