@@ -36,6 +36,15 @@ vi.mock('framer-motion', async () => {
 })
 
 /**
+ * Provides ResizeObserver support for components that measure DOM dimensions.
+ */
+vi.stubGlobal('ResizeObserver', class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+})
+
+/**
  * Removes rendered components and resets spies after each test.
  */
 afterEach(() => {
