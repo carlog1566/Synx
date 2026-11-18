@@ -6,11 +6,15 @@ import FretboardDisplay from '../../components/FretboardDisplay'
 
 /**
  * Isolates fretboard timing and active-chord selection from SVG rendering.
+ * Provides unique test identifiers to distinguish chords from string labels.
  */
 vi.mock('../../components/ChordColumn', () => ({
     default: ({ chordData, isActive, onSeek }) => (
         <g>
-            <text onClick={() => onSeek(chordData.time)}>
+            <text
+                data-testid={`chord-${chordData.chord}`}
+                onClick={() => onSeek(chordData.time)}
+            >
                 {chordData.chord}
             </text>
 
@@ -104,15 +108,17 @@ describe('FretboardDisplay', () => {
     })
 
     it('displays the chord progression', () => {
-        /** Verifies that every supplied chord is rendered. */
+        /**
+         * Verifies that every supplied chord is rendered.
+         */
 
         // Arrange & Act
         renderFretboard()
 
         // Assert
-        expect(screen.getByText('C')).toBeInTheDocument()
-        expect(screen.getByText('G')).toBeInTheDocument()
-        expect(screen.getByText('Am')).toBeInTheDocument()
+        expect(screen.getByTestId('chord-C')).toBeInTheDocument()
+        expect(screen.getByTestId('chord-G')).toBeInTheDocument()
+        expect(screen.getByTestId('chord-Am')).toBeInTheDocument()
     })
 
     it('displays the current and total playback times', () => {
@@ -185,14 +191,16 @@ describe('FretboardDisplay', () => {
     })
 
     it('requests seeking when a chord is selected', async () => {
-        /** Verifies that clicking a chord forwards its timestamp. */
+        /**
+         * Verifies that clicking a chord forwards its timestamp.
+         */
 
         // Arrange
         const user = userEvent.setup()
         const { props } = renderFretboard()
 
         // Act
-        await user.click(screen.getByText('G'))
+        await user.click(screen.getByTestId('chord-G'))
 
         // Assert
         expect(props.onSeek).toHaveBeenCalledExactlyOnceWith(5)
