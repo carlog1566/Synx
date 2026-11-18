@@ -37,35 +37,6 @@ vi.mock('@react-oauth/google', () => ({
     )
 }))
 
-/**
- * Replaces Framer Motion components with standard HTML elements.
- * Prevents animations from interfering with login component tests.
- */
-vi.mock('framer-motion', async () => {
-  const React = await import('react')
-
-  return {
-    motion: {
-      div: ({ children, initial, animate, transition, ...props }) =>
-        React.createElement('div', props, children),
-
-      button: ({
-        children,
-        initial,
-        animate,
-        transition,
-        whileHover,
-        whileTap,
-        ...props
-      }) => React.createElement('button', props, children),
-
-      span: ({ children, initial, animate, transition, ...props }) =>
-        React.createElement('span', props, children),
-    },
-
-    AnimatePresence: ({ children }) => children,
-  }
-})
 
 /**
  * Renders the login page with test-only routes, so that we don't have to mount the
