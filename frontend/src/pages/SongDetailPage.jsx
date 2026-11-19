@@ -200,7 +200,7 @@ const SongDetailPage = () => {
                             instrument={selectedInstrument} 
                         /> */}
                         <FretboardDisplay 
-                            tabData={song.tabs.guitar} 
+                            tabData={song.tabs?.[selectedInstrument] ?? []} 
                             totalTime={song.duration} 
                             currentTime={currentTime} 
                             formatDuration={formatDuration} 

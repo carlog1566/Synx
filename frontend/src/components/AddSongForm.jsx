@@ -24,11 +24,9 @@ function AddSongForm({ onSongAdded }) {
 
     
     const handleChange = (e) => {
-        const value = e.target.name === 'duration' ? parseInt(e.target.value) || '' : e.target.value
-
         setFormData({
             ...formData,
-            [e.target.name]: value
+            [e.target.name]: e.target.value
         })
     }
 
@@ -48,11 +46,6 @@ function AddSongForm({ onSongAdded }) {
 
         if (!audioFile) {
             setError('Please select an audio file!')
-            return
-        }
-
-        if (formData.duration <= 0) {
-            setError('Duration must be 0 or greater!')
             return
         }
 
