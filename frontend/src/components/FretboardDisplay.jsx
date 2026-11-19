@@ -90,13 +90,10 @@ const FretboardDisplay = ({ tabData, totalTime, currentTime, formatDuration, onS
         }
 
         const timeDiff = nextChord.time - currentChord.time
-
-        if (timeDiff === 0) {
-            return currentChordX
-        }
         
         const rawProgress = (currentTime - currentChord.time) / timeDiff
         const progress = Math.min(1, Math.max(0, rawProgress))
+        
         const nextChordX = (activeIndex + 1) * CHORD_WIDTH + (CHORD_WIDTH / 2)
 
         return currentChordX + (progress * (nextChordX - currentChordX))
