@@ -1,4 +1,4 @@
-# Synx - Music Learning App (In Development)
+# Synx - Music Learning App
 
 ### [Synx](https://www.synx.studio) is a web application that analyzes audio files to extract chords and generate instrument tabs for learning.
 
